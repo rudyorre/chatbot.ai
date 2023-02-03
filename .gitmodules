@@ -1,0 +1,3 @@
+[submodule "firesat"]
+	path = firesat
+	url = https://github.com/melaasar/firesat.git
