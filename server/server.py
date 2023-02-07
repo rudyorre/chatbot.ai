@@ -1,3 +1,5 @@
+import numpy as np
+import nltk
 from flask import Flask, render_template, request, url_for
 from flask_cors import CORS, cross_origin
 from SPARQLWrapper import SPARQLWrapper, JSON
@@ -36,6 +38,12 @@ def query():
 	except Exception as e:
 		print(e)
 	return str(result)
+
+@app.route('/python')
+@cross_origin()
+def python_package_test():
+	a = np.ones(5)
+	return np.array_str(a)
 
 
 if __name__ == '__main__':
