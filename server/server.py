@@ -66,6 +66,8 @@ def user_query():
 	# Tag parse
 	tagged_tokens = nltk.pos_tag(filtered_tokens)
 
+	print('tagged_tokens:', tagged_tokens)
+
 	#
 	if tagged_tokens[0][0] == "What" and len(tagged_tokens) >= 3:
 		# subject: analysis, base, bundle, mission, project
@@ -79,7 +81,10 @@ def user_query():
 		sparql.setReturnFormat(JSON)
 		sparql.setQuery(f"""
 			PREFIX foundation:<http://imce.jpl.nasa.gov/foundation/>
+			
 			PREFIX imports:<http://www.w3.org/2002/07/owl#imports>
+			PREFIX description:<http://purl.org/dc/elements/1.1/description>
+
 			SELECT ?subject ?predicate ?object
 			WHERE {{
 				foundation:{subject} {predicate}: ?object
