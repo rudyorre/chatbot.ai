@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -17,7 +18,7 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 
 	<!-- custom css -->
-	<link rel="stylesheet" type="text/css" href="static/main.css">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='main.css') }}">
 
 </head>
 
@@ -33,7 +34,7 @@
 				<div class="chat_window">
 
 					<div class="top_menu">
-						<div class="title">ChatBot - Jarvis</div>
+						<div class="title">Querybot</div>
 					</div>
 
 					<!-- dynamically rendered -->
@@ -64,8 +65,8 @@
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4 class="panel-title">
-									<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion"
-										href="#collapse1">Lorem ipsum</a>
+									<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse1">Lorem
+										ipsum</a>
 								</h4>
 							</div>
 							<div id="collapse1" class="panel-collapse collapse in">
@@ -91,7 +92,7 @@
 	</script>
 
 	<!-- custom scripts -->
-	<script src="static/main.js"></script>
+	<script src="{{ url_for('static',filename='main.js') }}"></script>
 </body>
 
 </html>
