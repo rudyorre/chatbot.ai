@@ -55,8 +55,7 @@ function showUserMessage(message, datetime) {
  * Displays the chatbot message on the chat screen. This is the left side message.
  */
 async function showBotMessage(message, datetime) {
-	val = await queryDB()
-	renderMessageToScreen({
+  renderMessageToScreen({
 		text: message,
 		time: datetime,
 		message_side: 'left',
@@ -67,22 +66,29 @@ async function showBotMessage(message, datetime) {
  * Get input from user and show it on screen on button click.
  */
 $('#send_button').on('click', function (e) {
-	// get and show message and reset input
+	// USER: get and show message and reset input
 	showUserMessage($('#msg_input').val());
 	$('#msg_input').val('');
 
-	// show bot message
+	// BOT: show bot message
 	setTimeout(function () {
-		showBotMessage();
+		queryDB();
 	}, 300);
 });
 
 
-function queryDB() {
-	fetch("http://localhost:8080")
+async function queryDB() {
+  // TASK: pass in user text to backend endpoint
+	fetch("http://localhost:8080/query")
 		.then(response => response.text())
 		.then(txt => {
 			console.log(txt);
+      // simply dumps query response but can clean output @ backend endpoint
+      renderMessageToScreen({
+        text: txt,
+        time: getCurrentTimestamp(),
+        message_side: 'left',
+      });
 			return txt;
 		})
 		.catch(function (error) {

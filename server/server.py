@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, request, url_for
 from flask_cors import CORS, cross_origin
 from SPARQLWrapper import SPARQLWrapper, JSON
 app = Flask(__name__)
@@ -6,6 +6,11 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/')
+@cross_origin()
+def homepage():
+	return render_template("index.html")
+
+@app.route('/query')
 @cross_origin()
 def query():
 	sparql = SPARQLWrapper(
