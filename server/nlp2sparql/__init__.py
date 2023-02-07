@@ -1,11 +1,11 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 
+import re
+
 import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-
-import re
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -31,8 +31,27 @@ class FusekiClient:
             A list of 2-tuples representing the filtered and tokenized sentence. Format: ("word", "parts-of-speech tag")
                 Ex: [('What', 'WP'), ('mission', 'NN'), ('description', 'NN'), ('?', '.')]
         '''
+        # Replace all urls with "unique" string
+        regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+        urls = re.findall(regex, text)
+        text_spaced = text.split(' ')
+        d = dict()
+        for i,t in enumerate(text_spaced):
+            if bool(re.match(regex, t)):
+                unique_string = f'SUPER_SPECIAL_UNIQUE_URL{i}'
+                d[unique_string] = text_spaced[i]
+                text_spaced[i] = unique_string
+        text = ' '.join(text_spaced)
+
         # Tokenize user query
         tokens = nltk.word_tokenize(text)
+
+        # Replace placeholders with original links
+        for i,token in enumerate(tokens):
+            print(token, d)
+            if token in d:
+                tokens[i] = f'<{d[token]}>'
+
         # Filter redundant words
         stop_words = stopwords.words('english')
         filtered_tokens = [t for t in tokens if t not in stop_words]
@@ -67,7 +86,12 @@ class FusekiClient:
         if (subject, predicate) in self._query_cache:
             return self._query_cache[(subject, predicate)]
         
-        result = self.sparql_query(subject=f'foundation:{subject}')
+        # 
+        if self.isURI(subject):
+            result = self.sparql_query(subject=subject)
+        else:
+            result = self.sparql_query(subject=f'foundation:{subject}')
+
         filtered_result = list()
         for i in range(len(result)):
             # Split string with delimiters ('/' and '#')
@@ -95,13 +119,13 @@ class FusekiClient:
         '''
         self._sparql.setQuery(f'''
             PREFIX foundation:<http://imce.jpl.nasa.gov/foundation/>
-
             SELECT ?subject ?predicate ?object
             WHERE {{
                 {subject} {predicate} {object}
             }}
             '''
         )
+        
         result = []
         try:		
             ret = self._sparql.queryAndConvert()	
@@ -110,3 +134,6 @@ class FusekiClient:
         except Exception as e:
             print(e)
         return result
+
+    def isURI(self, uri: str):
+        return len(uri) > 2 and uri[0] == '<' and uri[-1] == '>'
