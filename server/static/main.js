@@ -66,34 +66,52 @@ async function showBotMessage(message, datetime) {
  * Get input from user and show it on screen on button click.
  */
 $('#send_button').on('click', function (e) {
-	// USER: get and show message and reset input
-	showUserMessage($('#msg_input').val());
+	// USER: obtain & show message and reset input
+	user_question = $('#msg_input').val()
+	showUserMessage(user_question);
 	$('#msg_input').val('');
 
 	// BOT: show bot message
 	setTimeout(function () {
-		queryDB();
+		queryDB(user_question);
 	}, 300);
 });
 
 
-async function queryDB() {
-  // TASK: pass in user text to backend endpoint
-	fetch("http://localhost:8080/query")
+async function queryDB(question) {
+	const data = {
+		data: question
+	};
+
+  	// QUERY: pass in user text to backend endpoint as query
+	fetch("http://localhost:8080/query", {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(data),
+	})
+	.then(next => {
+		// RESPONSE: obtain english response
+		fetch("http://localhost:8080/response")
 		.then(response => response.text())
 		.then(txt => {
-			console.log(txt);
-      // simply dumps query response but can clean output @ backend endpoint
-      renderMessageToScreen({
-        text: txt,
-        time: getCurrentTimestamp(),
-        message_side: 'left',
-      });
+			// simply dumps query response but will clean output @ backend endpoint
+			// temporarily just extracts a value from the JSON object
+			renderMessageToScreen({
+				text: JSON.parse(txt)[0].object.value,
+				time: getCurrentTimestamp(),
+				message_side: 'left',
+			});
 			return txt;
 		})
 		.catch(function (error) {
-			console.log("Error: " + error);
+			console.log("Response Error: " + error);
 		});
+	})
+	.catch(function (error) {
+		console.log("Query Error: " + error);
+	});
 }
 
 /**
