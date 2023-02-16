@@ -1,5 +1,6 @@
-import numpy as np
-from nlp2sparql import FusekiClient
+from nlp2sparql import NaturalLanguageQueryExecutor
+from fuseki import FusekiClient
+
 from flask import Flask, render_template, request, url_for
 import nltk
 from flask_cors import CORS, cross_origin
@@ -47,6 +48,8 @@ def python_package_test():
 	return np.array_str(a)
 
 client = FusekiClient('http://host.docker.internal:3030/firesat/sparql')
+nlqe = NaturalLanguageQueryExecutor(client)
+
 user_queries = []
 processed_queries = []
 
@@ -55,13 +58,8 @@ processed_queries = []
 def user_query():
 	user_query = request.get_json()["data"]
 	user_queries.append(user_query)
-	tagged_tokens = client.parse(user_query)
-	
-	if tagged_tokens[0][0] == "What" and len(tagged_tokens) >= 3:
-		result = client.what_query(tagged_tokens)
-		processed_queries.append(result)
-	else:
-		processed_queries.append("Failed to process query :(")
+	processed_query = nlqe.query(user_query)
+	processed_queries.append(processed_query)
 	return '', 204
 
 @app.route('/response')
