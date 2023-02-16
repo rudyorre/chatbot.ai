@@ -1,7 +1,8 @@
 from nlp2sparql import NaturalLanguageQueryExecutor
 from fuseki import FusekiClient
+from frontend import FrontEnd
 
-from flask import Flask, render_template, request, url_for
+from flask import Flask, request
 import nltk
 from flask_cors import CORS, cross_origin
 from SPARQLWrapper import SPARQLWrapper, JSON
@@ -12,7 +13,8 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/')
 @cross_origin()
 def homepage():
-	return render_template("index.html")
+	frontend = FrontEnd('index.html')
+	return frontend.render_page()
 
 @app.route('/query')
 @cross_origin()
