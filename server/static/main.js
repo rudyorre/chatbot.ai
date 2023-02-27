@@ -44,6 +44,7 @@ function renderMessageToScreen(args) {
  * Displays the user message on the chat screen. This is the right side message.
  */
 function showUserMessage(message, datetime) {
+	message = message.replace(/(?:\r\n|\r|\n)/g, '<br>');
 	renderMessageToScreen({
 		text: message,
 		time: datetime,
@@ -55,7 +56,7 @@ function showUserMessage(message, datetime) {
  * Displays the chatbot message on the chat screen. This is the left side message.
  */
 async function showBotMessage(message, datetime) {
-  renderMessageToScreen({
+	renderMessageToScreen({
 		text: message,
 		time: datetime,
 		message_side: 'left',
