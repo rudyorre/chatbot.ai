@@ -8,20 +8,100 @@ nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
+class Query:
+    def __init__(self, user_input):
+        self.user_input = user_input        
+
+    def set_type(self, query_type):
+        self._type = query_type
+    
+    def set_cache(self, cache):
+        self.predicate_cache = cache
+    
+    def set_tokens(self, tokens):
+        self.tokens = tokens            
+    
+    def set_strategy(self, strategy):
+        self._strategy = strategy
+
+    def execute(self,db_result):
+        if self._strategy == None:
+            print("No strategy has been set!")
+        
+        return self._strategy.execute(db_result, self.tokens, self.predicate_cache)
+
+class NLPStrategy:
+    def execute(self,db_result,tokens, cache):
+        pass
+
+
+class WhatStrategy(NLPStrategy):    
+
+    def execute(self,db_result,tokens, cache):
+        '''
+        Processes user queries that ask a basic "what" question. In the context of RDF triples, the user
+        should prompt a subject and predicate, which will match all objects that match the criteria. The
+        implementation will involve making a more general query initially where only the subject is included,
+        which will allow us to search through all of the predicate URIs, which this function will attempt to match
+        with the user's provided predicate. Every RDF triple that matches this predicate will be returned from
+        this query.
+
+        Args:
+            tagged_tokens: A list of
+        
+        Returns:
+            ...
+        '''
+        # Stemming initialization
+        
+        ps = PorterStemmer()
+        predicate = tokens[2][0]
+        predicate_stem = ps.stem(predicate)        
+        filtered_result = list()
+        for i in range(len(db_result)):
+            # Split string with delimiters ('/' and '#')
+            predicate_uri = db_result[i]['predicate']['value']
+            predicate_name = re.split(r'/|#', predicate_uri)[-1]
+            predicate_name_stem = ps.stem(predicate_name)
+        
+            if predicate_name == predicate or predicate_stem == predicate_name_stem:
+                cache[predicate_name] = predicate_uri
+                filtered_result.append(db_result[i])
+        
+        return filtered_result
+
 class NaturalLanguageQueryExecutor:
     def __init__(self, client):
         self.client = client
-        self._predicate_cache = dict()
+        self.predicate_cache = dict()
         self._query_cache = dict()
 
-    def query(self, text: str):
-        tagged_tokens = self._parse(text)
-	
-        if tagged_tokens[0][0] == "What" and len(tagged_tokens) >= 3:
-            result = self._what_query(tagged_tokens)
-            return result
+
+    def query(self, query: Query):       
+        query.set_cache(self.predicate_cache)             
+        query.set_tokens(self._parse(query.user_input))
+
+        if query.tokens[0][0] == "What" and len(query.tokens) >= 3:            
+            query.set_strategy(WhatStrategy())        
         
-        return "Failed to process query :("
+        return self.process_query(query)
+
+    def process_query(self, query: Query):
+        # Identifying subject and predicate
+        subject = query.tokens[1][0] # subject: analysis, base, bundle, mission, project, etc
+        predicate = query.tokens[2][0] # predicate: imports, description, etc
+
+        # Checking if previous query was made already
+        if (subject, predicate) in self._query_cache:
+            return self._query_cache[(subject, predicate)]
+        
+        #Run Query        
+        if self._isURI(subject):
+            db_result = self.client.query(subject=subject)
+        else:            
+            db_result = self.client.query(subject=f'foundation:{subject}')
+        
+        return query.execute(db_result)
 
     def _parse(self, text: str) -> list:
         '''
@@ -52,8 +132,7 @@ class NaturalLanguageQueryExecutor:
         tokens = nltk.word_tokenize(text)
 
         # Replace placeholders with original links
-        for i,token in enumerate(tokens):
-            print(token, d)
+        for i,token in enumerate(tokens):            
             if token in d:
                 tokens[i] = f'<{d[token]}>'
 
@@ -63,51 +142,7 @@ class NaturalLanguageQueryExecutor:
         # Tag parse
         tagged_tokens = nltk.pos_tag(filtered_tokens)
         return tagged_tokens
-
-    def _what_query(self, tagged_tokens: list):
-        '''
-        Processes user queries that ask a basic "what" question. In the context of RDF triples, the user
-        should prompt a subject and predicate, which will match all objects that match the criteria. The
-        implementation will involve making a more general query initially where only the subject is included,
-        which will allow us to search through all of the predicate URIs, which this function will attempt to match
-        with the user's provided predicate. Every RDF triple that matches this predicate will be returned from
-        this query.
-
-        Args:
-            tagged_tokens: A list of
-        
-        Returns:
-            ...
-        '''
-        # Identifying subject and predicate
-        subject = tagged_tokens[1][0] # subject: analysis, base, bundle, mission, project, etc
-        predicate = tagged_tokens[2][0] # predicate: imports, description, etc
-
-        # Stemming initialization
-        ps = PorterStemmer()
-        predicate_stem = ps.stem(predicate)
-
-        # Checking if previous query was made already
-        if (subject, predicate) in self._query_cache:
-            return self._query_cache[(subject, predicate)]
-        
-        # 
-        if self._isURI(subject):
-            result = self.client.query(subject=subject)
-        else:
-            result = self.client.query(subject=f'foundation:{subject}')
-
-        filtered_result = list()
-        for i in range(len(result)):
-            # Split string with delimiters ('/' and '#')
-            predicate_uri = result[i]['predicate']['value']
-            predicate_name = re.split(r'/|#', predicate_uri)[-1]
-            predicate_name_stem = ps.stem(predicate_name)
-            if predicate_name == predicate or predicate_stem == predicate_name_stem:
-                self._predicate_cache[predicate_name] = predicate_uri
-                filtered_result.append(result[i])
-
-        return filtered_result
+    
 
     def _isURI(self, uri: str):
         return len(uri) > 2 and uri[0] == '<' and uri[-1] == '>'

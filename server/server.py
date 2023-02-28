@@ -1,4 +1,4 @@
-from nlp2sparql import NaturalLanguageQueryExecutor
+from nlp2sparql import NaturalLanguageQueryExecutor,Query
 from fuseki import FusekiClient
 from frontend import FrontEnd
 
@@ -43,12 +43,6 @@ def query():
 		print(e)
 	return str(result)
 
-@app.route('/python')
-@cross_origin()
-def python_package_test():
-	a = np.ones(5)
-	return np.array_str(a)
-
 client = FusekiClient('http://host.docker.internal:3030/firesat/sparql')
 nlqe = NaturalLanguageQueryExecutor(client)
 
@@ -58,7 +52,7 @@ processed_queries = []
 @app.route('/query', methods=['POST'])
 @cross_origin()
 def user_query():
-	user_query = request.get_json()["data"]
+	user_query =  Query(request.get_json()["data"])		
 	user_queries.append(user_query)
 	processed_query = nlqe.query(user_query)
 	processed_queries.append(processed_query)
