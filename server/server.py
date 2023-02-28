@@ -60,8 +60,16 @@ processed_queries = []
 def user_query():
 	user_query = request.get_json()["data"]
 	user_queries.append(user_query)
-	processed_query = nlqe.query(user_query)
-	processed_queries.append(processed_query)
+
+	# see if query matches any hardcoded responses
+	transformed_query = parse_user_query(user_query)
+	resp = get_hardcode_response(transformed_query)
+
+	if resp == '':
+		processed_query = nlqe.query(user_query)
+		processed_queries.append(processed_query)
+	else:
+		processed_queries.append(resp)
 	return '', 204
 
 @app.route('/response')
@@ -69,6 +77,25 @@ def user_query():
 def user_response():
 	return processed_queries[-1]
 
+def parse_user_query(user_query):
+	#simplify user input
+	user_query = user_query.strip().lower()
+	punctuation = ['.', '!', '?']
+	if user_query != '' and user_query[-1] in punctuation:
+		user_query = user_query[:-1]
+	return user_query
+
+def get_hardcode_response(query):
+	greetings = ['hi!', 'hi', 'hello', 'hello!', 'hello there']
+	if query in greetings:
+		return "Hello, welcome!"
+	elif query == 'tell me about yourself':
+		return 'I am an AI Chatbot interface that is here to help answer questions related to the FireSat (Fire Satallite) mission design. Feel free to ask below!'
+	elif query == 'what dataset do you interact with':
+		return 'I interface with the FireSat dataset.'
+	else:
+		return ""
+	
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=8080)
