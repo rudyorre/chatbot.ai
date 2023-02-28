@@ -137,6 +137,10 @@ class NaturalLanguageQueryExecutor:
         id = tagged_tokens[id_index + 1][0]
         results = self.client.assembly_query(id=str(id))
 
+        if len(results) == 0:
+            filtered_result['response'] = f"Unable to find information about assembly object id {id}"
+            return filtered_result
+
         filtered_result['response'] = f"For assembly object {id}: <br>\n "
 
         for result in results:
@@ -146,6 +150,7 @@ class NaturalLanguageQueryExecutor:
                         result_dict['mass'].append(v['value'])
                         filtered_result['response'] += f"The mass is {float(v['value'])} kg. <br>\n "
                 if ('function', 'NN') in tagged_tokens and k == "function":
+                    if v['value'] in result_dict['function']: continue
                     result_dict['function'].append(v['value'])
 
         if "function" in result_dict:
