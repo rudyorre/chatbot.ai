@@ -3,6 +3,7 @@ import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+from collections import defaultdict
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -16,7 +17,11 @@ class NaturalLanguageQueryExecutor:
 
     def query(self, text: str):
         tagged_tokens = self._parse(text)
-	
+
+        if (('mass', 'NN') in tagged_tokens) or (('function', 'NN') in tagged_tokens):
+            result = self._assembly_query(tagged_tokens)
+            return result
+
         if tagged_tokens[0][0] == "What" and len(tagged_tokens) >= 3:
             result = self._what_query(tagged_tokens)
             return result
@@ -108,6 +113,60 @@ class NaturalLanguageQueryExecutor:
                 filtered_result.append(result[i])
 
         return filtered_result
+
+    def _assembly_query(self, tagged_tokens: list):
+        '''
+        Assembly query handles the quesition related to the "mass / function" of a particular assembly object. 
+        Users should provide an assembly object with "id" specified, associated mass (int) or function (list) 
+        will be returned depending on the question asked.
+        Args:
+            tagged_tokens: A list of tokens
+        
+        Returns:
+            filtered_result: A dict containing a response english string
+        '''
+
+        filtered_result = {}
+
+        result_dict = defaultdict(list)
+        if ('id', 'NN') not in tagged_tokens:
+            filtered_result['response'] = "Please ask the question again and contain the keyword 'id' in your question :)"
+            return filtered_result
+
+        id_index = tagged_tokens.index(('id', 'NN'))
+        id = tagged_tokens[id_index + 1][0]
+        results = self.client.assembly_query(id=str(id))
+
+        filtered_result['response'] = f"For assembly object {id}: <br>\n "
+
+        for result in results:
+            for k, v in result.items():
+                if ('mass', 'NN') in tagged_tokens and k == "mass":
+                    if 'mass' not in result_dict:
+                        result_dict['mass'].append(v['value'])
+                        filtered_result['response'] += f"The mass is {float(v['value'])} kg. <br>\n "
+                if ('function', 'NN') in tagged_tokens and k == "function":
+                    result_dict['function'].append(v['value'])
+
+        if "function" in result_dict:
+            result_dict["function"] = [self._processURI(uri) for uri in result_dict["function"]]
+
+            if len(result_dict["function"]) == 1: filtered_result['response'] += f"The function is: <br> "
+            else: filtered_result['response'] += f"The functions are: <br> "
+
+            tabstr = "&nbsp;" * 4
+            for func in result_dict["function"]:
+                filtered_result['response'] += tabstr + f"- {func} <br> "
+        return filtered_result
+
+    def _processURI(self, uri: str):
+        '''
+        Convert a URI that represents the function of an assembly object into NL
+        '''
+        _, func = uri.split('#')
+        func_str = re.findall('[A-Z][^A-Z]*', func)
+        func_str = [func_str[i] if i == 0 else func_str[i].lower() for i in range(len(func_str))]
+        return " ".join(func_str)
 
     def _isURI(self, uri: str):
         return len(uri) > 2 and uri[0] == '<' and uri[-1] == '>'

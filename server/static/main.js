@@ -99,7 +99,7 @@ async function queryDB(question) {
 			// simply dumps query response but will clean output @ backend endpoint
 			// temporarily just extracts a value from the JSON object
 			renderMessageToScreen({
-				text: JSON.parse(txt)[0].object.value,
+				text: JSON.parse(txt)['response'],
 				time: getCurrentTimestamp(),
 				message_side: 'left',
 			});
