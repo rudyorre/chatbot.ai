@@ -2,12 +2,12 @@ services:
   server:
     container_name: server
     build:
-      context: ./server
+      context: ./server/src/server
       target: builder
     stop_signal: SIGINT
     environment:
       FLASK_DEBUG: 1
       FLASK_APP: ./app.py
-    volumes: ["./server:/server"]
+    volumes: ["./server/src/server:/server"]
     ports:
       - "8080:8080"
