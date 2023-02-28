@@ -3,7 +3,6 @@ from fuseki import FusekiClient
 from frontend import FrontEnd
 
 from flask import Flask, request
-import nltk
 from flask_cors import CORS, cross_origin
 from SPARQLWrapper import SPARQLWrapper, JSON
 app = Flask(__name__)
