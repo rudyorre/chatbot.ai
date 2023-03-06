@@ -161,6 +161,19 @@ class DomainRangeStrategy(NLPStrategy):
 
         return filtered_result
 
+    def _send_domain_range_error(self):
+        """
+        Send back a response message to the user asking them to reformat their domain/range query.
+
+        Returns:
+            filtered_result: A dictionary of a response
+        """
+        filtered_result = {}
+        filtered_result[
+            "response"
+        ] = f"Sorry, phrase your query as 'What is the domain and range of __?'"
+        return filtered_result
+
     def execute(self, tagged_tokens, cache, client):
         """
         Processes user queries that ask a basic "domain / range" question. In the context of RDF triples, the user
@@ -202,13 +215,30 @@ class DomainRangeStrategy(NLPStrategy):
                 return (filtered_result, 0)
 
         # (2) DOMAIN & RANGE of property query
-        if ("domain", "NN") in tagged_tokens and ("range", "NN") in tagged_tokens:
+        elif ("domain", "NN") in tagged_tokens or ("range", "NN") in tagged_tokens:
+            domain_and_range = ("domain", "NN") in tagged_tokens and ("range", "NN") in tagged_tokens
+            domain_only = ("domain", "NN") in tagged_tokens and ("range", "NN") not in tagged_tokens
+            range_only = ("domain", "NN") not in tagged_tokens and ("range", "NN") in tagged_tokens
+
             # extract property index from tokens
-            dom_index = tagged_tokens.index(("domain", "NN"))
-            range_index = tagged_tokens.index(("range", "NN"))
+            dom_index = -1
+            range_index = -1
+            try:
+                dom_index = tagged_tokens.index(("domain", "NN"))
+            except ValueError:
+                dom_index = -1
+            try:
+                range_index = tagged_tokens.index(("range", "NN"))
+            except ValueError:
+                range_index = -1
             property_index = (
                 range_index + 1 if range_index > dom_index else dom_index + 1
             )
+            
+            # short-circuit domain_range error for poorly formatted input
+            if property_index >= len(tagged_tokens):
+                filtered_result = self._send_domain_range_error()
+                return (filtered_result, 1)
 
             # query via property label
             prop = tagged_tokens[property_index][0].strip('"')
@@ -253,7 +283,15 @@ class DomainRangeStrategy(NLPStrategy):
                                 range_label = dic["value"]
                             elif key == "property" and property_label == None:
                                 property_label = dic["value"]
-                        collected_response += f"For property '{property_label}', the domain is '{domain_label}' and range is '{range_label}'. "
+
+                        # return necessary information
+                        if domain_and_range:
+                            collected_response += f"For property '{property_label}', the domain is '{domain_label}' and range is '{range_label}'. "
+                        elif domain_only:
+                            collected_response += f"For property '{property_label}', the domain is '{domain_label}'. "
+                        elif range_only:
+                            collected_response += f"For property '{property_label}', the range is '{range_label}'. "
+
                     filtered_result["response"] = collected_response
                     
                     # reset disambiguation variables
@@ -268,13 +306,26 @@ class DomainRangeStrategy(NLPStrategy):
 
             # (b) SINGLE RESULT LOGIC
             else:
-                filtered_result[
-                    "response"
-                ] = f"For property '{property_label}', the domain is '{domain_label}' and range is '{range_label}'."
+                # return necessary information
+                if domain_and_range:
+                    filtered_result[
+                        "response"
+                    ] = f"For property '{property_label}', the domain is '{domain_label}' and range is '{range_label}'."
+                elif domain_only:
+                    filtered_result[
+                        "response"
+                    ] = f"For property '{property_label}', the domain is '{domain_label}'."
+                elif range_only:
+                    filtered_result[
+                        "response"
+                    ] = f"For property '{property_label}', the range is '{range_label}'."
                 return (filtered_result, 1)
 
-        # FUTURE: DOMAIN only code
-        # FUTURE: RANGE only code
+        # (3) INVALID DOMAIN/RANGE QUERY
+        else:
+            filtered_result = self._send_domain_range_error()
+            return (filtered_result, 1)
+
         # FUTURE: PROPERTIES of a certain DOMAIN code
         # FUTURE: PROPERTIES of a certain RANGE code
         # FUTURE: list all PROPERTIES with DOMAIN & RANGE code
@@ -283,7 +334,6 @@ class Strategy(Enum):
     NONE = 0
     WHAT = 1
     DOMAIN_RANGE = 2
-
 
 class NaturalLanguageQueryExecutor:
     def __init__(self, client):
@@ -315,7 +365,7 @@ class NaturalLanguageQueryExecutor:
         return self.process_query(query)
 
     def process_query(self, query: Query):
-        if len(query.tokens) > 1:
+        if len(query.tokens) > 2:
             # Identifying subject and predicate
             subject = query.tokens[1][
                 0
@@ -350,7 +400,7 @@ class NaturalLanguageQueryExecutor:
         # Replace all urls with "unique" string
         regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
         urls = re.findall(regex, text)
-        text_spaced = text.split(" ")
+        text_spaced = text.strip().split(" ")
         replacements = dict()
         for i, t in enumerate(text_spaced):
             if bool(re.match(regex, t)):
