@@ -106,7 +106,7 @@ class DomainRangeStrategy(NLPStrategy):
         # reset disambiguation variables
         self._disambiguation_options.clear()
         self._disambiguation_prop_label.clear()
-        
+
     def _assign_labels(self, prop, result):
         """
         Extract domain, range, labels from Fuseki result object.
@@ -149,10 +149,14 @@ class DomainRangeStrategy(NLPStrategy):
         # iterate over each property data source
         for src, value in self._disambiguation_options.items():
             selected_uri = value
-            result = client.domain_range_query(property=selected_uri, property_label=prop)
-            property_label, domain_label, range_label = self._assign_labels(prop, result)
+            result = client.domain_range_query(
+                property=selected_uri, property_label=prop
+            )
+            property_label, domain_label, range_label = self._assign_labels(
+                prop, result
+            )
             collected_response += f"For property '{property_label}' in {src}, the domain is '{domain_label}' and range is '{range_label}'. "
-        
+
         filtered_result["response"] = collected_response
 
         # reset disambiguation variables
@@ -194,8 +198,13 @@ class DomainRangeStrategy(NLPStrategy):
             # SUCCESS match single option
             if tagged_tokens[0] in self._disambiguation_options:
                 selected_uri = self._disambiguation_options[tagged_tokens[0]]
-                result = client.domain_range_query(property=selected_uri, property_label=self._disambiguation_prop_label["prop"])
-                property_label, domain_label, range_label = self._assign_labels(self._disambiguation_prop_label["prop"], result)
+                result = client.domain_range_query(
+                    property=selected_uri,
+                    property_label=self._disambiguation_prop_label["prop"],
+                )
+                property_label, domain_label, range_label = self._assign_labels(
+                    self._disambiguation_prop_label["prop"], result
+                )
                 filtered_result[
                     "response"
                 ] = f"For property '{property_label}' in {tagged_tokens[0]}, the domain is '{domain_label}' and range is '{range_label}'."
@@ -204,7 +213,9 @@ class DomainRangeStrategy(NLPStrategy):
 
             # SUCCESS match all-of-the-above option
             elif tagged_tokens[0] == "all of the above":
-                filtered_result = self._show_all(client, self._disambiguation_prop_label["prop"])
+                filtered_result = self._show_all(
+                    client, self._disambiguation_prop_label["prop"]
+                )
                 return (filtered_result, 1)
 
             # FAIL match option
@@ -216,9 +227,18 @@ class DomainRangeStrategy(NLPStrategy):
 
         # (2) DOMAIN & RANGE of property query
         elif ("domain", "NN") in tagged_tokens or ("range", "NN") in tagged_tokens:
-            domain_and_range = ("domain", "NN") in tagged_tokens and ("range", "NN") in tagged_tokens
-            domain_only = ("domain", "NN") in tagged_tokens and ("range", "NN") not in tagged_tokens
-            range_only = ("domain", "NN") not in tagged_tokens and ("range", "NN") in tagged_tokens
+            domain_and_range = ("domain", "NN") in tagged_tokens and (
+                "range",
+                "NN",
+            ) in tagged_tokens
+            domain_only = ("domain", "NN") in tagged_tokens and (
+                "range",
+                "NN",
+            ) not in tagged_tokens
+            range_only = ("domain", "NN") not in tagged_tokens and (
+                "range",
+                "NN",
+            ) in tagged_tokens
 
             # extract property index from tokens
             dom_index = -1
@@ -234,7 +254,7 @@ class DomainRangeStrategy(NLPStrategy):
             property_index = (
                 range_index + 1 if range_index > dom_index else dom_index + 1
             )
-            
+
             # short-circuit domain_range error for poorly formatted input
             if property_index >= len(tagged_tokens):
                 filtered_result = self._send_domain_range_error()
@@ -243,7 +263,9 @@ class DomainRangeStrategy(NLPStrategy):
             # query via property label
             prop = tagged_tokens[property_index][0].strip('"')
             result = client.domain_range_query(property_label=prop)
-            property_label, domain_label, range_label = self._assign_labels(prop, result)
+            property_label, domain_label, range_label = self._assign_labels(
+                prop, result
+            )
 
             # (a) DISAMBIGUATION LOGIC -- if multiple results per label, prompt user
             if len(result) > 1:
@@ -252,22 +274,28 @@ class DomainRangeStrategy(NLPStrategy):
                 filtered_result[
                     "response"
                 ] = f"For property '{property_label}', which data source are you referring to: <br>"
-                
+
                 # cache uri options and extract relevant part of uri for property source
                 for item in result:
-                    property_label, domain_label, range_label = self._assign_labels(prop, result)
-                    uri = item['property']['value']
-                    src_start = uri.index('//') + 2
-                    src_end = uri.index('#')
-                    filtered_result['response'] += tabstr + f"- {uri[src_start:src_end]} <br>"
-                    self._disambiguation_options[uri[src_start:src_end]] = f'<{uri}>'
+                    property_label, domain_label, range_label = self._assign_labels(
+                        prop, result
+                    )
+                    uri = item["property"]["value"]
+                    src_start = uri.index("//") + 2
+                    src_end = uri.index("#")
+                    filtered_result["response"] += (
+                        tabstr + f"- {uri[src_start:src_end]} <br>"
+                    )
+                    self._disambiguation_options[uri[src_start:src_end]] = f"<{uri}>"
 
                 # check to see if uris are the same
                 same_uris = False
                 if len(self._disambiguation_options.items()) == 1:
                     test_val = list(self._disambiguation_options.values())[0]
-                    same_uris = all(val == test_val for val in self._disambiguation_options.values())
-                    
+                    same_uris = all(
+                        val == test_val for val in self._disambiguation_options.values()
+                    )
+
                 # (i) Show all results if property uris are same
                 if same_uris:
                     filtered_result = {}
@@ -293,14 +321,14 @@ class DomainRangeStrategy(NLPStrategy):
                             collected_response += f"For property '{property_label}', the range is '{range_label}'. "
 
                     filtered_result["response"] = collected_response
-                    
+
                     # reset disambiguation variables
                     self._clear_disambiguation_cache()
                     return (filtered_result, 1)
 
                 # (ii) Cache multiple result options for future disambiguation
                 else:
-                    filtered_result['response'] += tabstr + f"- all of the above"
+                    filtered_result["response"] += tabstr + f"- all of the above"
                     self._disambiguation_prop_label["prop"] = prop
                     return (filtered_result, 0)
 
@@ -330,10 +358,12 @@ class DomainRangeStrategy(NLPStrategy):
         # FUTURE: PROPERTIES of a certain RANGE code
         # FUTURE: list all PROPERTIES with DOMAIN & RANGE code
 
+
 class Strategy(Enum):
     NONE = 0
     WHAT = 1
     DOMAIN_RANGE = 2
+
 
 class NaturalLanguageQueryExecutor:
     def __init__(self, client):
@@ -347,18 +377,20 @@ class NaturalLanguageQueryExecutor:
         query.set_cache(self.predicate_cache)
 
         # only parse input if not disambiguating
-        if (self._strategy_state == Strategy.NONE):
+        if self._strategy_state == Strategy.NONE:
             query.set_tokens(self._parse(query.user_input))
         else:
             query.set_tokens([query.user_input.strip()])
 
         # set query strategy
-        if (self._strategy_state == Strategy.DOMAIN_RANGE) or \
-            ((("domain", "NN") in query.tokens) or (("range", "NN") in query.tokens)):
+        if (self._strategy_state == Strategy.DOMAIN_RANGE) or (
+            (("domain", "NN") in query.tokens) or (("range", "NN") in query.tokens)
+        ):
             query.set_strategy(DomainRangeStrategy())
             self._strategy_state = Strategy.DOMAIN_RANGE
-        elif (self._strategy_state == Strategy.WHAT) or \
-            (query.tokens[0][0] == "What" and len(query.tokens) >= 3):
+        elif (self._strategy_state == Strategy.WHAT) or (
+            query.tokens[0][0] == "What" and len(query.tokens) >= 3
+        ):
             query.set_strategy(WhatStrategy())
             self._strategy_state = Strategy.WHAT
 
