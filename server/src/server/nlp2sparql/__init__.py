@@ -1,5 +1,6 @@
 import re
 import nltk
+from enum import Enum
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -91,10 +92,75 @@ class WhatStrategy(NLPStrategy):
         filtered_result2 = {}
         filtered_result2["response"] = filtered_result[0]["object"]["value"]
 
-        return filtered_result2
+        return (filtered_result2, 1)
 
 
 class DomainRangeStrategy(NLPStrategy):
+    _disambiguation_options = {}
+    _disambiguation_prop_label = {}
+
+    def _clear_disambiguation_cache(self):
+        """
+        Clear disambiguation cache options and property label
+        """
+        # reset disambiguation variables
+        self._disambiguation_options.clear()
+        self._disambiguation_prop_label.clear()
+        
+    def _assign_labels(self, prop, result):
+        """
+        Extract domain, range, labels from Fuseki result object.
+        Args:
+            result: A json fuseki object
+
+        Returns:
+            property_label: A string of the property label
+            domain_label: A string of the domain label
+            range_label: A string of the range label
+        """
+        filtered_result = {}
+        property_label = prop
+        domain_label = ""
+        range_label = ""
+
+        # assign labels for domain/range/property, o/w use uris
+        for key, dic in result[0].items():
+            if key == "domain" or key == "domain_label":
+                domain_label = dic["value"]
+            elif key == "range" or key == "range_label":
+                range_label = dic["value"]
+            elif key == "property" and property_label == None:
+                property_label = dic["value"]
+
+        return (property_label, domain_label, range_label)
+
+    def _show_all(self, client, prop):
+        """
+        Show all property/domain/range labels from Fuseki result object.
+        Args:
+            client: A Fuseki client
+            prop: A string property label
+
+        Returns:
+            filtered_result: A dictionary of a response
+        """
+        filtered_result = {}
+        collected_response = ""
+        # iterate over each property data source
+        for src, value in self._disambiguation_options.items():
+            selected_uri = value
+            result = client.domain_range_query(property=selected_uri, property_label=prop)
+            property_label, domain_label, range_label = self._assign_labels(prop, result)
+            collected_response += f"For property '{property_label}' in {src}, the domain is '{domain_label}' and range is '{range_label}'. "
+        
+        filtered_result["response"] = collected_response
+
+        # reset disambiguation variables
+        self._disambiguation_options.clear()
+        self._disambiguation_prop_label.clear()
+
+        return filtered_result
+
     def execute(self, tagged_tokens, cache, client):
         """
         Processes user queries that ask a basic "domain / range" question. In the context of RDF triples, the user
@@ -108,13 +174,34 @@ class DomainRangeStrategy(NLPStrategy):
         Returns:
             filtered_result: A dict containing a response english string
         """
-        prefixes = {}
-        domain = None
-        range = None
-        property = None
-        result = None
+        filtered_result = {}
 
-        # DOMAIN & RANGE of property query
+        # (1) DISAMBIGUATION state
+        if self._disambiguation_options and tagged_tokens:
+            # SUCCESS match single option
+            if tagged_tokens[0] in self._disambiguation_options:
+                selected_uri = self._disambiguation_options[tagged_tokens[0]]
+                result = client.domain_range_query(property=selected_uri, property_label=self._disambiguation_prop_label["prop"])
+                property_label, domain_label, range_label = self._assign_labels(self._disambiguation_prop_label["prop"], result)
+                filtered_result[
+                    "response"
+                ] = f"For property '{property_label}' in {tagged_tokens[0]}, the domain is '{domain_label}' and range is '{range_label}'."
+                self._clear_disambiguation_cache()
+                return (filtered_result, 1)
+
+            # SUCCESS match all-of-the-above option
+            elif tagged_tokens[0] == "all of the above":
+                filtered_result = self._show_all(client, self._disambiguation_prop_label["prop"])
+                return (filtered_result, 1)
+
+            # FAIL match option
+            else:
+                filtered_result[
+                    "response"
+                ] = f"Sorry, which data source would you like for domain/range querying?"
+                return (filtered_result, 0)
+
+        # (2) DOMAIN & RANGE of property query
         if ("domain", "NN") in tagged_tokens and ("range", "NN") in tagged_tokens:
             # extract property index from tokens
             dom_index = tagged_tokens.index(("domain", "NN"))
@@ -126,26 +213,65 @@ class DomainRangeStrategy(NLPStrategy):
             # query via property label
             prop = tagged_tokens[property_index][0].strip('"')
             result = client.domain_range_query(property_label=prop)
-            # FUTURE: DISAMBIGUATION CODE -- if multiple results per label, prompt user
+            property_label, domain_label, range_label = self._assign_labels(prop, result)
 
-            filtered_result = {}
-            property_label = prop
-            domain_label = ""
-            range_label = ""
+            # (a) DISAMBIGUATION LOGIC -- if multiple results per label, prompt user
+            if len(result) > 1:
+                # prepare disambiguation prompt
+                tabstr = "&nbsp;" * 4
+                filtered_result[
+                    "response"
+                ] = f"For property '{property_label}', which data source are you referring to: <br>"
+                
+                # cache uri options and extract relevant part of uri for property source
+                for item in result:
+                    property_label, domain_label, range_label = self._assign_labels(prop, result)
+                    uri = item['property']['value']
+                    src_start = uri.index('//') + 2
+                    src_end = uri.index('#')
+                    filtered_result['response'] += tabstr + f"- {uri[src_start:src_end]} <br>"
+                    self._disambiguation_options[uri[src_start:src_end]] = f'<{uri}>'
 
-            # assign labels for domain/range/property, o/w use uris
-            for key, dic in result[0].items():
-                if key == "domain" or key == "domain_label":
-                    domain_label = dic["value"]
-                elif key == "range" or key == "range_label":
-                    range_label = dic["value"]
-                elif key == "property" and property_label == None:
-                    property_label = dic["value"]
+                # check to see if uris are the same
+                same_uris = False
+                if len(self._disambiguation_options.items()) == 1:
+                    test_val = list(self._disambiguation_options.values())[0]
+                    same_uris = all(val == test_val for val in self._disambiguation_options.values())
+                    
+                # (i) Show all results if property uris are same
+                if same_uris:
+                    filtered_result = {}
+                    collected_response = ""
 
-            filtered_result[
-                "response"
-            ] = f"For property '{property_label}', the domain is '{domain_label}' and range is '{range_label}'."
-            return filtered_result
+                    # collect domain/range/property label information over each result entity
+                    for entity in result:
+                        property_label, domain_label, range_label = prop, "", ""
+                        for key, dic in entity.items():
+                            if key == "domain" or key == "domain_label":
+                                domain_label = dic["value"]
+                            elif key == "range" or key == "range_label":
+                                range_label = dic["value"]
+                            elif key == "property" and property_label == None:
+                                property_label = dic["value"]
+                        collected_response += f"For property '{property_label}', the domain is '{domain_label}' and range is '{range_label}'. "
+                    filtered_result["response"] = collected_response
+                    
+                    # reset disambiguation variables
+                    self._clear_disambiguation_cache()
+                    return (filtered_result, 1)
+
+                # (ii) Cache multiple result options for future disambiguation
+                else:
+                    filtered_result['response'] += tabstr + f"- all of the above"
+                    self._disambiguation_prop_label["prop"] = prop
+                    return (filtered_result, 0)
+
+            # (b) SINGLE RESULT LOGIC
+            else:
+                filtered_result[
+                    "response"
+                ] = f"For property '{property_label}', the domain is '{domain_label}' and range is '{range_label}'."
+                return (filtered_result, 1)
 
         # FUTURE: DOMAIN only code
         # FUTURE: RANGE only code
@@ -153,37 +279,60 @@ class DomainRangeStrategy(NLPStrategy):
         # FUTURE: PROPERTIES of a certain RANGE code
         # FUTURE: list all PROPERTIES with DOMAIN & RANGE code
 
+class Strategy(Enum):
+    NONE = 0
+    WHAT = 1
+    DOMAIN_RANGE = 2
+
 
 class NaturalLanguageQueryExecutor:
     def __init__(self, client):
         self.client = client
         self.predicate_cache = dict()
         self._query_cache = dict()
+        self._strategy_state = Strategy.NONE
 
     def query(self, query: Query):
         query.set_client(self.client)
         query.set_cache(self.predicate_cache)
-        query.set_tokens(self._parse(query.user_input))
 
-        if (("domain", "NN") in query.tokens) or (("range", "NN") in query.tokens):
+        # only parse input if not disambiguating
+        if (self._strategy_state == Strategy.NONE):
+            query.set_tokens(self._parse(query.user_input))
+        else:
+            query.set_tokens([query.user_input.strip()])
+
+        # set query strategy
+        if (self._strategy_state == Strategy.DOMAIN_RANGE) or \
+            ((("domain", "NN") in query.tokens) or (("range", "NN") in query.tokens)):
             query.set_strategy(DomainRangeStrategy())
-        elif query.tokens[0][0] == "What" and len(query.tokens) >= 3:
+            self._strategy_state = Strategy.DOMAIN_RANGE
+        elif (self._strategy_state == Strategy.WHAT) or \
+            (query.tokens[0][0] == "What" and len(query.tokens) >= 3):
             query.set_strategy(WhatStrategy())
+            self._strategy_state = Strategy.WHAT
 
         return self.process_query(query)
 
     def process_query(self, query: Query):
-        # Identifying subject and predicate
-        subject = query.tokens[1][
-            0
-        ]  # subject: analysis, base, bundle, mission, project, etc
-        predicate = query.tokens[2][0]  # predicate: imports, description, etc
+        if len(query.tokens) > 1:
+            # Identifying subject and predicate
+            subject = query.tokens[1][
+                0
+            ]  # subject: analysis, base, bundle, mission, project, etc
+            predicate = query.tokens[2][0]  # predicate: imports, description, etc
 
-        # Checking if previous query was made already
-        if (subject, predicate) in self._query_cache:
-            return self._query_cache[(subject, predicate)]
+            # Checking if previous query was made already
+            if (subject, predicate) in self._query_cache:
+                return self._query_cache[(subject, predicate)]
 
-        return query.execute()
+        # Use status to enforce continued query for disambiguation
+        result, status = query.execute()
+
+        if status:
+            self._strategy_state = Strategy.NONE
+
+        return result
 
     def _parse(self, text: str) -> list:
         """
@@ -215,7 +364,14 @@ class NaturalLanguageQueryExecutor:
         in_quote = False
         quote_counter = 0
         for i, t in enumerate(text_spaced):
-            if t[0] == '"':
+            # single-word quote case
+            if t[0] == '"' and (t[-1] == '"' or t[-2] == '"'):
+                unique_string = f"QUOTATION{i}"
+                replacements[unique_string] = t
+                text_spaced[int(unique_string[-1])] = unique_string
+                quote_counter += 1
+            # multi-word quote case
+            elif t[0] == '"':
                 unique_string = f"QUOTATION{i}"
                 quote_token += t + " "
                 in_quote = True
