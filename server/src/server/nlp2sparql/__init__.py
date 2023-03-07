@@ -137,7 +137,7 @@ class DomainRangePropertyStrategy(NLPStrategy):
                 domain_index = tagged_tokens.index(("domain", "NN"))
             except ValueError:
                 domain_index = -1
-        
+
         try:
             range_index = tagged_tokens.index(("range", "VBP"))
         except ValueError:
@@ -149,7 +149,7 @@ class DomainRangePropertyStrategy(NLPStrategy):
         label_index = (
             domain_index + 1 if domain_index > range_index else range_index + 1
         )
-        
+
         # 1) DOMAIN PROPERTIES QUERY
         if range_index == -1:
             # short-circuit domain_range error for poorly formatted input
@@ -173,7 +173,9 @@ class DomainRangePropertyStrategy(NLPStrategy):
             collected_response = f"For domain '{domain_label}', the properties are: "
             for plabel in property_labels[:-1]:
                 collected_response += f"{plabel}, "
-            collected_response += "" if len(property_labels) < 1 else f"{property_labels[-1]}."
+            collected_response += (
+                "" if len(property_labels) < 1 else f"{property_labels[-1]}."
+            )
 
             filtered_result["response"] = collected_response
             return (filtered_result, 1)
@@ -201,12 +203,14 @@ class DomainRangePropertyStrategy(NLPStrategy):
             collected_response = f"For range '{range_label}', the properties are: "
             for plabel in property_labels[:-1]:
                 collected_response += f"{plabel}, "
-            collected_response += "" if len(property_labels) < 1 else f"{property_labels[-1]}."
+            collected_response += (
+                "" if len(property_labels) < 1 else f"{property_labels[-1]}."
+            )
 
             filtered_result["response"] = collected_response
             return (filtered_result, 1)
-                
- 
+
+
 class DomainRangeStrategy(NLPStrategy):
     _disambiguation_options = {}
     _disambiguation_prop_label = {}
@@ -466,10 +470,6 @@ class DomainRangeStrategy(NLPStrategy):
             filtered_result = self._send_domain_range_error()
             return (filtered_result, 1)
 
-        # FUTURE: PROPERTIES of a certain DOMAIN code
-        # FUTURE: PROPERTIES of a certain RANGE code
-        # FUTURE: list all PROPERTIES with DOMAIN & RANGE code
-
 
 class Strategy(Enum):
     NONE = 0
@@ -500,7 +500,8 @@ class NaturalLanguageQueryExecutor:
         # set query strategy
         # 1) DOMAIN_RANGE_PROPERTY
         if (self._strategy_state == Strategy.DOMAIN_RANGE_PROPERTY) or (
-            (("property", "NN") in query.tokens) or (("properties", "NNS") in query.tokens)
+            (("property", "NN") in query.tokens)
+            or (("properties", "NNS") in query.tokens)
         ):
             query.set_strategy(DomainRangePropertyStrategy())
             self._strategy_state = Strategy.DOMAIN_RANGE_PROPERTY
