@@ -95,6 +95,118 @@ class WhatStrategy(NLPStrategy):
         return (filtered_result2, 1)
 
 
+class DomainRangePropertyStrategy(NLPStrategy):
+    _disambiguation_options = {}
+    _disambiguation_prop_label = {}
+
+    def _send_domain_range_properties_error(self):
+        """
+        Send back a response message to the user asking them to reformat their domain/range query.
+
+        Returns:
+            filtered_result: A dictionary of a response
+        """
+        filtered_result = {}
+        filtered_result[
+            "response"
+        ] = f"Sorry, phrase your query as 'What are the properties of domain/range __?'"
+        return filtered_result
+
+    def execute(self, tagged_tokens, cache, client):
+        """
+        Processes user queries that ask about the properties of a particular "domain / range". In the context of RDF triples,
+        the user should prompt a domain/range label, which will return all property_labels that match the criteria and return their
+        associated property entries as labels or uris. Multi-word property labels must be wrapped in quotes.
+
+        Args:
+            tagged_tokens: A list of tokens
+
+        Returns:
+            filtered_result: A dict containing a response english string
+        """
+        filtered_result = {}
+        print(tagged_tokens)
+
+        # extract domain OR range index from tokens
+        domain_index = -1
+        range_index = -1
+        try:
+            domain_index = tagged_tokens.index(("domain", "VBP"))
+        except ValueError:
+            try:
+                domain_index = tagged_tokens.index(("domain", "NN"))
+            except ValueError:
+                domain_index = -1
+        
+        try:
+            range_index = tagged_tokens.index(("range", "VBP"))
+        except ValueError:
+            try:
+                range_index = tagged_tokens.index(("range", "NN"))
+            except ValueError:
+                range_index = -1
+
+        label_index = (
+            domain_index + 1 if domain_index > range_index else range_index + 1
+        )
+        
+        # 1) DOMAIN PROPERTIES QUERY
+        if range_index == -1:
+            # short-circuit domain_range error for poorly formatted input
+            if label_index >= len(tagged_tokens):
+                filtered_result = self._send_domain_range_properties_error()
+                return (filtered_result, 1)
+
+            # query via domain label
+            domain_label = tagged_tokens[label_index][0].strip('"')
+            result = client.domain_property_query(domain_label=domain_label)
+            filtered_result = {}
+            property_labels = []
+
+            # extract property labels for specified domain_label
+            for entity in result:
+                for key, dic in entity.items():
+                    if key == "property_label":
+                        property_labels.append(dic["value"])
+
+            # create response object with all labels
+            collected_response = f"For domain '{domain_label}', the properties are: "
+            for plabel in property_labels[:-1]:
+                collected_response += f"{plabel}, "
+            collected_response += "" if len(property_labels) < 1 else f"{property_labels[-1]}."
+
+            filtered_result["response"] = collected_response
+            return (filtered_result, 1)
+
+        # 2) RANGE PROPERTIES QUERY
+        elif domain_index == -1:
+            # short-circuit domain_range error for poorly formatted input
+            if label_index >= len(tagged_tokens):
+                filtered_result = self._send_domain_range_properties_error()
+                return (filtered_result, 1)
+
+            # query via domain label
+            range_label = tagged_tokens[label_index][0].strip('"')
+            result = client.range_property_query(range_label=range_label)
+            filtered_result = {}
+            property_labels = []
+
+            # extract property labels for specified domain_label
+            for entity in result:
+                for key, dic in entity.items():
+                    if key == "property_label":
+                        property_labels.append(dic["value"])
+
+            # create response object with all labels
+            collected_response = f"For range '{range_label}', the properties are: "
+            for plabel in property_labels[:-1]:
+                collected_response += f"{plabel}, "
+            collected_response += "" if len(property_labels) < 1 else f"{property_labels[-1]}."
+
+            filtered_result["response"] = collected_response
+            return (filtered_result, 1)
+                
+ 
 class DomainRangeStrategy(NLPStrategy):
     _disambiguation_options = {}
     _disambiguation_prop_label = {}
@@ -363,6 +475,7 @@ class Strategy(Enum):
     NONE = 0
     WHAT = 1
     DOMAIN_RANGE = 2
+    DOMAIN_RANGE_PROPERTY = 3
 
 
 class NaturalLanguageQueryExecutor:
@@ -382,12 +495,22 @@ class NaturalLanguageQueryExecutor:
         else:
             query.set_tokens([query.user_input.strip()])
 
+        print(query.tokens)
+        print(self._strategy_state)
         # set query strategy
-        if (self._strategy_state == Strategy.DOMAIN_RANGE) or (
+        # 1) DOMAIN_RANGE_PROPERTY
+        if (self._strategy_state == Strategy.DOMAIN_RANGE_PROPERTY) or (
+            (("property", "NN") in query.tokens) or (("properties", "NNS") in query.tokens)
+        ):
+            query.set_strategy(DomainRangePropertyStrategy())
+            self._strategy_state = Strategy.DOMAIN_RANGE_PROPERTY
+        # 2) DOMAIN_RANGE
+        elif (self._strategy_state == Strategy.DOMAIN_RANGE) or (
             (("domain", "NN") in query.tokens) or (("range", "NN") in query.tokens)
         ):
             query.set_strategy(DomainRangeStrategy())
             self._strategy_state = Strategy.DOMAIN_RANGE
+        # 3) WHAT
         elif (self._strategy_state == Strategy.WHAT) or (
             query.tokens[0][0] == "What" and len(query.tokens) >= 3
         ):

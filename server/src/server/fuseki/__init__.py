@@ -55,6 +55,7 @@ class FusekiClient:
         Args:
             domain: domain field of property
             property: specified property
+            property_label: specified property label
             range: range field of property
 
         Returns:
@@ -78,6 +79,86 @@ class FusekiClient:
             }}
 
             ORDER BY ?domain
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
+
+    def domain_property_query(
+        self,
+        domain_label="?domain_label",
+    ):
+        """
+            Creates a sparql query using the provided domain variable.
+
+        Args:
+            domain_label: domain label field of property
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT DISTINCT ?domain ?property ?property_label
+            WHERE {{
+                ?domain a owl:Class .
+                ?domain rdfs:label "{domain_label}" .
+
+                ?property rdfs:domain ?domain .
+                ?property rdfs:label ?property_label .
+            }}
+
+            ORDER BY ?domain
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
+
+    def range_property_query(
+        self,
+        range_label="?range_label",
+    ):
+        """
+        Creates a sparql query using the provided range variable.
+
+        Args:
+            range_label: range label field of property
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT DISTINCT ?range ?property ?property_label
+            WHERE {{
+                ?range a owl:Class .
+                ?range rdfs:label "{range_label}" .
+
+                ?property rdfs:range ?range .
+                ?property rdfs:label ?property_label .
+            }}
+
+            ORDER BY ?range
             """
         )
 
