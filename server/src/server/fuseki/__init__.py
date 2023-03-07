@@ -106,7 +106,7 @@ class FusekiClient:
             id: id of assembly
             mass: mass of assembly
             function: function of assembly
-        
+
         Returns:
             A list of dictionaries containing representing the JSON that the SPARQL query returns.
         """
@@ -132,8 +132,8 @@ class FusekiClient:
         )
 
         result = []
-        try:		
-            ret = self._sparql.queryAndConvert()	
+        try:
+            ret = self._sparql.queryAndConvert()
             for r in ret["results"]["bindings"]:
                 result.append(r)
         except Exception as e:

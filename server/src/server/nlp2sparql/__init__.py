@@ -10,6 +10,7 @@ nltk.download("averaged_perceptron_tagger")
 
 from collections import defaultdict
 
+
 class Query:
     def __init__(self, user_input):
         self.user_input = user_input
@@ -154,14 +155,17 @@ class DomainRangeStrategy(NLPStrategy):
         # FUTURE: PROPERTIES of a certain RANGE code
         # FUTURE: list all PROPERTIES with DOMAIN & RANGE code
 
+
 class AssemblyStrategy(NLPStrategy):
     def _processURI(self, uri: str):
         """
         Convert a URI that represents the function of an assembly object into NL
         """
-        _, func = uri.split('#')
-        func_str = re.findall('[A-Z][^A-Z]*', func)
-        func_str = [func_str[i] if i == 0 else func_str[i].lower() for i in range(len(func_str))]
+        _, func = uri.split("#")
+        func_str = re.findall("[A-Z][^A-Z]*", func)
+        func_str = [
+            func_str[i] if i == 0 else func_str[i].lower() for i in range(len(func_str))
+        ]
         return " ".join(func_str)
 
     def execute(self, tagged_tokens, cache, client):
@@ -172,7 +176,7 @@ class AssemblyStrategy(NLPStrategy):
 
         Args:
             tagged_tokens: A list of tokens
-        
+
         Returns:
             filtered_result: A dict containing a response english string
         """
@@ -186,36 +190,46 @@ class AssemblyStrategy(NLPStrategy):
             ] = "Please ask the question again and contain the keyword 'id' in your question :)"
             return filtered_result
 
-        id_index = tagged_tokens.index(('id', 'NN'))
+        id_index = tagged_tokens.index(("id", "NN"))
         id = tagged_tokens[id_index + 1][0]
         results = client.assembly_query(id=str(id))
 
         if len(results) == 0:
-            filtered_result["response"] = f"Unable to find information about assembly object id {id}"
+            filtered_result[
+                "response"
+            ] = f"Unable to find information about assembly object id {id}"
             return filtered_result
 
-        filtered_result['response'] = f"For assembly object {id}: <br>\n "
+        filtered_result["response"] = f"For assembly object {id}: <br>\n "
 
         for result in results:
             for k, v in result.items():
-                if ('mass', 'NN') in tagged_tokens and k == "mass":
-                    if 'mass' not in result_dict:
-                        result_dict['mass'].append(v['value'])
-                        filtered_result['response'] += f"The mass is {float(v['value'])} kg. <br>\n "
-                if ('function', 'NN') in tagged_tokens and k == "function":
-                    if v['value'] in result_dict['function']: continue
-                    result_dict['function'].append(v['value'])
+                if ("mass", "NN") in tagged_tokens and k == "mass":
+                    if "mass" not in result_dict:
+                        result_dict["mass"].append(v["value"])
+                        filtered_result[
+                            "response"
+                        ] += f"The mass is {float(v['value'])} kg. <br>\n "
+                if ("function", "NN") in tagged_tokens and k == "function":
+                    if v["value"] in result_dict["function"]:
+                        continue
+                    result_dict["function"].append(v["value"])
 
         if "function" in result_dict:
-            result_dict["function"] = [self._processURI(uri) for uri in result_dict["function"]]
+            result_dict["function"] = [
+                self._processURI(uri) for uri in result_dict["function"]
+            ]
 
-            if len(result_dict["function"]) == 1: filtered_result['response'] += f"The function is: <br> "
-            else: filtered_result['response'] += f"The functions are: <br> "
+            if len(result_dict["function"]) == 1:
+                filtered_result["response"] += f"The function is: <br> "
+            else:
+                filtered_result["response"] += f"The functions are: <br> "
 
             tabstr = "&nbsp;" * 4
             for func in result_dict["function"]:
-                filtered_result['response'] += tabstr + f"- {func} <br> "
+                filtered_result["response"] += tabstr + f"- {func} <br> "
         return filtered_result
+
 
 class NaturalLanguageQueryExecutor:
     def __init__(self, client):
@@ -228,7 +242,7 @@ class NaturalLanguageQueryExecutor:
         query.set_cache(self.predicate_cache)
         query.set_tokens(self._parse(query.user_input))
 
-        if (('mass', 'NN') in query.tokens) or (('function', 'NN') in query.tokens):
+        if (("mass", "NN") in query.tokens) or (("function", "NN") in query.tokens):
             query.set_strategy(AssemblyStrategy())
         elif (("domain", "NN") in query.tokens) or (("range", "NN") in query.tokens):
             query.set_strategy(DomainRangeStrategy())
