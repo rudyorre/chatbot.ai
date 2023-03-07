@@ -9,6 +9,8 @@ nltk.download("stopwords")
 nltk.download("punkt")
 nltk.download("averaged_perceptron_tagger")
 
+from collections import defaultdict
+
 
 class Query:
     def __init__(self, user_input):
@@ -125,7 +127,6 @@ class DomainRangePropertyStrategy(NLPStrategy):
             filtered_result: A dict containing a response english string
         """
         filtered_result = {}
-        print(tagged_tokens)
 
         # extract domain OR range index from tokens
         domain_index = -1
@@ -163,6 +164,13 @@ class DomainRangePropertyStrategy(NLPStrategy):
             filtered_result = {}
             property_labels = []
 
+            # NO RESULTS
+            if len(result) == 0:
+                filtered_result[
+                    "response"
+                ] = f"Unable to find information about domain {domain_label}"
+                return (filtered_result, 1)
+
             # extract property labels for specified domain_label
             for entity in result:
                 for key, dic in entity.items():
@@ -192,6 +200,13 @@ class DomainRangePropertyStrategy(NLPStrategy):
             result = client.range_property_query(range_label=range_label)
             filtered_result = {}
             property_labels = []
+
+            # NO RESULTS
+            if len(result) == 0:
+                filtered_result[
+                    "response"
+                ] = f"Unable to find information about range {range_label}"
+                return (filtered_result, 1)
 
             # extract property labels for specified domain_label
             for entity in result:
@@ -471,11 +486,87 @@ class DomainRangeStrategy(NLPStrategy):
             return (filtered_result, 1)
 
 
+class AssemblyStrategy(NLPStrategy):
+    def _processURI(self, uri: str):
+        """
+        Convert a URI that represents the function of an assembly object into NL
+        """
+        _, func = uri.split("#")
+        func_str = re.findall("[A-Z][^A-Z]*", func)
+        func_str = [
+            func_str[i] if i == 0 else func_str[i].lower() for i in range(len(func_str))
+        ]
+        return " ".join(func_str)
+
+    def execute(self, tagged_tokens, cache, client):
+        """
+        Assembly query handles the quesition related to the "mass / function" of a particular assembly object.
+        Users should provide an assembly object with "id" specified, associated mass (int) or function (list)
+        will be returned depending on the question asked.
+
+        Args:
+            tagged_tokens: A list of tokens
+
+        Returns:
+            filtered_result: A dict containing a response english string
+        """
+
+        filtered_result = {}
+        result_dict = defaultdict(list)
+
+        if ("id", "NN") not in tagged_tokens:
+            filtered_result[
+                "response"
+            ] = "Please ask the question again and contain the keyword 'id' in your question :)"
+            return (filtered_result, 1)
+
+        id_index = tagged_tokens.index(("id", "NN"))
+        id = tagged_tokens[id_index + 1][0]
+        results = client.assembly_query(id=str(id))
+
+        if len(results) == 0:
+            filtered_result[
+                "response"
+            ] = f"Unable to find information about assembly object id {id}"
+            return (filtered_result, 1)
+
+        filtered_result["response"] = f"For assembly object {id}: <br>\n "
+
+        for result in results:
+            for k, v in result.items():
+                if ("mass", "NN") in tagged_tokens and k == "mass":
+                    if "mass" not in result_dict:
+                        result_dict["mass"].append(v["value"])
+                        filtered_result[
+                            "response"
+                        ] += f"The mass is {float(v['value'])} kg. <br>\n "
+                if ("function", "NN") in tagged_tokens and k == "function":
+                    if v["value"] in result_dict["function"]:
+                        continue
+                    result_dict["function"].append(v["value"])
+
+        if "function" in result_dict:
+            result_dict["function"] = [
+                self._processURI(uri) for uri in result_dict["function"]
+            ]
+
+            if len(result_dict["function"]) == 1:
+                filtered_result["response"] += f"The function is: <br> "
+            else:
+                filtered_result["response"] += f"The functions are: <br> "
+
+            tabstr = "&nbsp;" * 4
+            for func in result_dict["function"]:
+                filtered_result["response"] += tabstr + f"- {func} <br> "
+        return (filtered_result, 1)
+
+
 class Strategy(Enum):
     NONE = 0
     WHAT = 1
     DOMAIN_RANGE = 2
     DOMAIN_RANGE_PROPERTY = 3
+    ASSEMBLY = 4
 
 
 class NaturalLanguageQueryExecutor:
@@ -495,8 +586,6 @@ class NaturalLanguageQueryExecutor:
         else:
             query.set_tokens([query.user_input.strip()])
 
-        print(query.tokens)
-        print(self._strategy_state)
         # set query strategy
         # 1) DOMAIN_RANGE_PROPERTY
         if (self._strategy_state == Strategy.DOMAIN_RANGE_PROPERTY) or (
@@ -511,7 +600,11 @@ class NaturalLanguageQueryExecutor:
         ):
             query.set_strategy(DomainRangeStrategy())
             self._strategy_state = Strategy.DOMAIN_RANGE
-        # 3) WHAT
+        # 3) ASSEMBLY
+        elif (("mass", "NN") in query.tokens) or (("function", "NN") in query.tokens):
+            query.set_strategy(AssemblyStrategy())
+            self._strategy_state = Strategy.ASSEMBLY
+        # 4) WHAT
         elif (self._strategy_state == Strategy.WHAT) or (
             query.tokens[0][0] == "What" and len(query.tokens) >= 3
         ):
