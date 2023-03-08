@@ -1,3 +1,4 @@
+from collections import defaultdict
 import re
 import nltk
 from enum import Enum
@@ -8,8 +9,6 @@ from nltk.stem import PorterStemmer
 nltk.download("stopwords")
 nltk.download("punkt")
 nltk.download("averaged_perceptron_tagger")
-
-from collections import defaultdict
 
 
 class Query:
@@ -489,7 +488,36 @@ class DomainRangeStrategy(NLPStrategy):
             return (filtered_result, 1)
 
 
-class AssemblyStrategy(NLPStrategy):
+class Strategy(Enum):
+    NONE = 0
+    WHAT = 1
+    DOMAIN_RANGE = 2
+    DOMAIN_RANGE_PROPERTY = 3
+    ASSEMBLY = 4
+    FILTER_ASSEMBLY = 5
+
+
+class FilterDecorator:
+    def __init__(self, upper=-1, lower=-1):
+        self.upper = upper
+        self.lower = lower
+
+    def __call__(self, arg):
+        if self.lower != -1 and self.upper != -1:
+            return f"FILTER ({arg} > {self.lower} && {arg} < {self.upper})"
+        elif self.lower != -1:
+            return f"FILTER ({arg} > {self.lower})"
+        elif self.upper != -1:
+            return f"FILTER ({arg} < {self.upper})"
+
+
+class AssemblyBaseStrategy(NLPStrategy):
+    def _checkExist(self, token: list, tagged: tuple):
+        try:
+            return token.index(tagged)
+        except ValueError:
+            return -1
+
     def _processURI(self, uri: str):
         """
         Convert a URI that represents the function of an assembly object into NL
@@ -499,8 +527,38 @@ class AssemblyStrategy(NLPStrategy):
         func_str = [
             func_str[i] if i == 0 else func_str[i].lower() for i in range(len(func_str))
         ]
-        return " ".join(func_str)
 
+        # Handle acronyms like "GPS"
+        processed = [func_str[0]]
+        for fs in func_str[1:]:
+            if len(fs) == 1:
+                processed[-1] += fs.upper()
+            else:
+                processed.append(fs)
+        return " ".join(processed)
+
+    def _returnProcessedList(self, name: str, result_list: list):
+        filtered_result = ""
+
+        result_list = [
+            self._processURI(uri) for uri in result_list
+        ]
+
+        if len(result_list) == 1:
+            filtered_result = f"The {name} is: <br> "
+        else:
+            filtered_result = f"The {name}s are: <br> "
+
+        tabstr = "&nbsp;" * 4
+        for func in result_list:
+            filtered_result += tabstr + f"- {func} <br> "
+        return filtered_result
+
+    def execute(self, tokens, cache, client):
+        pass
+
+
+class MassFunctionStrategy(AssemblyBaseStrategy):
     def execute(self, tagged_tokens, cache, client):
         """
         Assembly query handles the quesition related to the "mass / function" of a particular assembly object.
@@ -516,7 +574,7 @@ class AssemblyStrategy(NLPStrategy):
         """
 
         filtered_result = {}
-        result_dict = defaultdict(list)
+        result_dict = defaultdict(set)
 
         if ("id", "NN") not in tagged_tokens:
             filtered_result[
@@ -540,111 +598,73 @@ class AssemblyStrategy(NLPStrategy):
             for k, v in result.items():
                 if ("mass", "NN") in tagged_tokens and k == "mass":
                     if "mass" not in result_dict:
-                        result_dict["mass"].append(v["value"])
+                        result_dict["mass"].add(v["value"])
                         filtered_result[
                             "response"
                         ] += f"The mass is {float(v['value'])} kg. <br>\n "
                 if ("function", "NN") in tagged_tokens and k == "function":
-                    if v["value"] in result_dict["function"]:
-                        continue
-                    result_dict["function"].append(v["value"])
+                    result_dict["function"].add(v["value"])
 
-        if "function" in result_dict:
-            result_dict["function"] = [
-                self._processURI(uri) for uri in result_dict["function"]
-            ]
-
-            if len(result_dict["function"]) == 1:
-                filtered_result["response"] += f"The function is: <br> "
-            else:
-                filtered_result["response"] += f"The functions are: <br> "
-
-            tabstr = "&nbsp;" * 4
-            for func in result_dict["function"]:
-                filtered_result["response"] += tabstr + f"- {func} <br> "
+        filtered_result["response"] += self._returnProcessedList(
+            "function", result_dict["function"])
         return (filtered_result, 1)
 
 
-class Strategy(Enum):
-    NONE = 0
-    WHAT = 1
-    DOMAIN_RANGE = 2
-    DOMAIN_RANGE_PROPERTY = 3
-    ASSEMBLY = 4
-
-
-class AssemblyStrategy(NLPStrategy):
-    def _processURI(self, uri: str):
-        """
-        Convert a URI that represents the function of an assembly object into NL
-        """
-        _, func = uri.split("#")
-        func_str = re.findall("[A-Z][^A-Z]*", func)
-        func_str = [
-            func_str[i] if i == 0 else func_str[i].lower() for i in range(len(func_str))
-        ]
-        return " ".join(func_str)
-
+class FilterMassStrategy(AssemblyBaseStrategy):
     def execute(self, tagged_tokens, cache, client):
         """
-        Assembly query handles the quesition related to the "mass / function" of a particular assembly object.
-        Users should provide an assembly object with "id" specified, associated mass (int) or function (list)
-        will be returned depending on the question asked.
+        Assembly query handles the quesition related to the mass range of a particular assembly object.
+        Users should provide an range with keywords like "heavier"/"lighter" specified, associated assembly
+        objects will be returned depending on the question asked.
 
         Args:
             tagged_tokens: A list of tokens
 
         Returns:
             filtered_result: A dict containing a response english string
+            status: A boolean for whether query requires disambiguation
         """
 
         filtered_result = {}
-        result_dict = defaultdict(list)
 
-        if ("id", "NN") not in tagged_tokens:
+        heavier_index = self._checkExist(tagged_tokens, ("heavier", "JJR"))
+
+        lighter_index = -1
+        if ("lighter", "RB") in tagged_tokens:
+            lighter_index = self._checkExist(tagged_tokens, ("lighter", "RB"))
+        elif ("lighter", "JJR") in tagged_tokens:
+            lighter_index = self._checkExist(tagged_tokens, ("lighter", "JJR"))
+
+        lower, upper = -1, -1
+        if lighter_index != -1:
+            upper = float(tagged_tokens[lighter_index + 1][0])
+        if heavier_index != -1:
+            lower = float(tagged_tokens[heavier_index + 1][0])
+
+        if upper != -1 and lower != -1 and upper < lower:
             filtered_result[
                 "response"
-            ] = "Please ask the question again and contain the keyword 'id' in your question :)"
+            ] = "Please enter a valid mass range"
             return (filtered_result, 1)
 
-        id_index = tagged_tokens.index(("id", "NN"))
-        id = tagged_tokens[id_index + 1][0]
-        results = client.assembly_query(id=str(id))
+        filter_decorator = FilterDecorator(upper, lower)
+        results = client.assembly_query(decorator=filter_decorator)
 
         if len(results) == 0:
             filtered_result[
                 "response"
-            ] = f"Unable to find information about assembly object id {id}"
+            ] = f"Unable to find information for subjects within this range"
             return (filtered_result, 1)
 
-        filtered_result["response"] = f"For assembly object {id}: <br>\n "
-
+        assembly_list = set()
         for result in results:
             for k, v in result.items():
-                if ("mass", "NN") in tagged_tokens and k == "mass":
-                    if "mass" not in result_dict:
-                        result_dict["mass"].append(v["value"])
-                        filtered_result[
-                            "response"
-                        ] += f"The mass is {float(v['value'])} kg. <br>\n "
-                if ("function", "NN") in tagged_tokens and k == "function":
-                    if v["value"] in result_dict["function"]:
-                        continue
-                    result_dict["function"].append(v["value"])
+                if k != "assembly":
+                    continue
+                assembly_list.add(v["value"])
 
-        if "function" in result_dict:
-            result_dict["function"] = [
-                self._processURI(uri) for uri in result_dict["function"]
-            ]
-
-            if len(result_dict["function"]) == 1:
-                filtered_result["response"] += f"The function is: <br> "
-            else:
-                filtered_result["response"] += f"The functions are: <br> "
-
-            tabstr = "&nbsp;" * 4
-            for func in result_dict["function"]:
-                filtered_result["response"] += tabstr + f"- {func} <br> "
+        filtered_result["response"] = self._returnProcessedList(
+            "subject", assembly_list)
         return (filtered_result, 1)
 
 
@@ -675,15 +695,21 @@ class NaturalLanguageQueryExecutor:
             self._strategy_state = Strategy.DOMAIN_RANGE_PROPERTY
         # 2) DOMAIN_RANGE
         elif (self._strategy_state == Strategy.DOMAIN_RANGE) or (
-            (("domain", "NN") in query.tokens) or (("range", "NN") in query.tokens)
+            (("domain", "NN") in query.tokens) or (
+                ("range", "NN") in query.tokens)
         ):
             query.set_strategy(DomainRangeStrategy())
             self._strategy_state = Strategy.DOMAIN_RANGE
         # 3) ASSEMBLY
         elif (("mass", "NN") in query.tokens) or (("function", "NN") in query.tokens):
-            query.set_strategy(AssemblyStrategy())
+            query.set_strategy(MassFunctionStrategy())
             self._strategy_state = Strategy.ASSEMBLY
-        # 4) WHAT
+        # 4) FILTER_ASSEMBLY
+        elif (("heavier", "JJR") in query.tokens) or \
+             (("lighter", "RB") in query.tokens) or (("lighter", "JJR") in query.tokens):
+            query.set_strategy(FilterMassStrategy())
+            self._strategy_state = Strategy.FILTER_ASSEMBLY
+        # 5) WHAT
         elif (self._strategy_state == Strategy.WHAT) or (
             query.tokens[0][0] == "What" and len(query.tokens) >= 3
         ):
@@ -698,7 +724,8 @@ class NaturalLanguageQueryExecutor:
             subject = query.tokens[1][
                 0
             ]  # subject: analysis, base, bundle, mission, project, etc
-            predicate = query.tokens[2][0]  # predicate: imports, description, etc
+            # predicate: imports, description, etc
+            predicate = query.tokens[2][0]
 
             # Checking if previous query was made already
             if (subject, predicate) in self._query_cache:
