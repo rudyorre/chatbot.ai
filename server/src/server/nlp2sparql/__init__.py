@@ -620,7 +620,7 @@ class SubSuperStrategy(NLPStrategy):
             return (filtered_result, 1)
         # (3) POORLY FORMATTED QUERY
         else:
-            return (_send_subsuper_error(), 1)
+            return (self._send_subsuper_error(), 1)
 
 
 class AssemblyStrategy(NLPStrategy):
