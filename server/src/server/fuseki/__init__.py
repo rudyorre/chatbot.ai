@@ -220,3 +220,83 @@ class FusekiClient:
         except Exception as e:
             print(e)
         return result
+
+    def subclass_query(
+        self,
+        super="?super",
+    ):
+        """
+        Creates a sparql query using the provided subclass variable.
+
+        Args:
+            super: superclass field uri
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+            SELECT DISTINCT ?sub ?super
+
+            WHERE {{
+                ?sub rdfs:subClassOf <{super}> .
+                FILTER ( ?sub != <{super}> )
+                FILTER ( isIRI(<{super}>) )
+            }}
+
+            ORDER BY ?sub
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
+
+    def superclass_query(
+        self,
+        sub="?sub",
+    ):
+        """
+        Creates a sparql query using the provided superclass variable.
+
+        Args:
+            sub: subclass field uri
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+            SELECT DISTINCT ?sub ?super
+
+            WHERE {{
+                <{sub}> rdfs:subClassOf ?super .
+                FILTER ( <{sub}> != ?super)
+                FILTER ( isIRI(?super) )
+            }}
+
+            ORDER BY ?super
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
