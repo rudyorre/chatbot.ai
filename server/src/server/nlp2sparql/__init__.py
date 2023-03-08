@@ -545,17 +545,17 @@ class SubSuperStrategy(NLPStrategy):
             except ValueError:
                 super_index = -1
 
-        uri_index = (
-            sub_index + 1 if sub_index > super_index else super_index + 1
-        )
+        uri_index = sub_index + 1 if sub_index > super_index else super_index + 1
 
         # Error check tagged_tokens access
         if uri_index >= len(tagged_tokens):
             return (self._send_subsuper_error(), 1)
 
         # (1) SUBCLASS state
-        if (("subclass", "NN") in tagged_tokens) or (("subclasses", "VBZ") in tagged_tokens):
-            uri = tagged_tokens[uri_index][0].strip('\"')
+        if (("subclass", "NN") in tagged_tokens) or (
+            ("subclasses", "VBZ") in tagged_tokens
+        ):
+            uri = tagged_tokens[uri_index][0].strip('"')
             result = client.subclass_query(super=uri)
             subclasses = []
 
@@ -586,8 +586,10 @@ class SubSuperStrategy(NLPStrategy):
             return (filtered_result, 1)
 
         # (2) SUPERCLASS state
-        elif (("superclass", "NN") in tagged_tokens) or (("superclasses", "VBZ") in tagged_tokens):
-            uri = tagged_tokens[uri_index][0].strip('\"')
+        elif (("superclass", "NN") in tagged_tokens) or (
+            ("superclasses", "VBZ") in tagged_tokens
+        ):
+            uri = tagged_tokens[uri_index][0].strip('"')
             result = client.superclass_query(sub=uri)
             superclasses = []
 
@@ -742,8 +744,12 @@ class NaturalLanguageQueryExecutor:
             query.set_strategy(AssemblyStrategy())
             self._strategy_state = Strategy.ASSEMBLY
         # 4) SUBSUPER
-        elif (("subclass", "NN") in query.tokens) or (("subclasses", "VBZ") in query.tokens) or (
-            ("superclass", "NN") in query.tokens) or (("superclasses", "VBZ") in query.tokens):
+        elif (
+            (("subclass", "NN") in query.tokens)
+            or (("subclasses", "VBZ") in query.tokens)
+            or (("superclass", "NN") in query.tokens)
+            or (("superclasses", "VBZ") in query.tokens)
+        ):
             query.set_strategy(SubSuperStrategy())
             self._strategy_state = Strategy.SUBSUPER
         # 5) WHAT
