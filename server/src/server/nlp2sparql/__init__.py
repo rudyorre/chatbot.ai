@@ -396,6 +396,13 @@ class DomainRangeStrategy(NLPStrategy):
             # query via property label
             prop = tagged_tokens[property_index][0].strip('"')
             result = client.domain_range_query(property_label=prop)
+            # NO RESULTS
+            if len(result) == 0:
+                filtered_result[
+                    "response"
+                ] = f"Unable to find information for domain/range of '{prop}'"
+                return (filtered_result, 1)
+
             property_label, domain_label, range_label = self._assign_labels(
                 prop, result
             )
@@ -495,6 +502,7 @@ class Strategy(Enum):
     DOMAIN_RANGE_PROPERTY = 3
     ASSEMBLY = 4
     FILTER_ASSEMBLY = 5
+    SUBSUPER = 6
 
 
 class FilterDecorator:
@@ -509,6 +517,132 @@ class FilterDecorator:
             return f"FILTER ({arg} > {self.lower})"
         elif self.upper != -1:
             return f"FILTER ({arg} < {self.upper})"
+
+class SubSuperStrategy(NLPStrategy):
+    def _send_subsuper_error(self):
+        """
+        Send back a response message to the user asking them to reformat their sub/super-class query.
+
+        Returns:
+            filtered_result: A dictionary of a response
+        """
+        filtered_result = {}
+        filtered_result[
+            "response"
+        ] = f"Sorry, phrase your query as 'What are the sub/super-classes of __?'"
+        return filtered_result
+
+    def execute(self, tagged_tokens, cache, client):
+        """
+        Processes user queries that ask a basic "sub / super-class" question. In the context of RDF triples, the user
+        should prompt a property_label, which will match all property_labels that match the criteria and return their
+        associated domain and range entries as labels or uris. Disambiguation occurs for multiple matchine property
+        labels. Multi-word property labels must be wrapped in quotes.
+
+        Args:
+            tagged_tokens: A list of tokens
+
+        Returns:
+            filtered_result: A dict containing a response english string
+            status: A boolean for whether query requires disambiguation
+        """
+        filtered_result = {}
+
+        # extract subclass OR superclass index from tokens
+        sub_index = -1
+        super_index = -1
+        try:
+            sub_index = tagged_tokens.index(("subclass", "NN"))
+        except ValueError:
+            try:
+                sub_index = tagged_tokens.index(("subclasses", "VBZ"))
+            except ValueError:
+                sub_index = -1
+
+        try:
+            super_index = tagged_tokens.index(("superclass", "NN"))
+        except ValueError:
+            try:
+                super_index = tagged_tokens.index(("superclasses", "VBZ"))
+            except ValueError:
+                super_index = -1
+
+        uri_index = sub_index + 1 if sub_index > super_index else super_index + 1
+
+        # Error check tagged_tokens access
+        if uri_index >= len(tagged_tokens):
+            return (self._send_subsuper_error(), 1)
+
+        # (1) SUBCLASS state
+        if (("subclass", "NN") in tagged_tokens) or (
+            ("subclasses", "VBZ") in tagged_tokens
+        ):
+            uri = tagged_tokens[uri_index][0].strip('"')
+            result = client.subclass_query(super=uri)
+            subclasses = []
+
+            # NO RESULTS
+            if len(result) == 0:
+                filtered_result[
+                    "response"
+                ] = f"Unable to find information for subclasses of '{uri}'"
+                return (filtered_result, 1)
+
+            # extract subclasses for specified superclass
+            for entity in result:
+                for key, dic in entity.items():
+                    if key == "sub":
+                        subclasses.append(dic["value"])
+
+            # create response object with all subclasses
+            collected_response = f"The subclasses for '{uri}' are:<br>"
+
+            tabstr = "&nbsp;" * 4
+            for sub in subclasses[:-1]:
+                collected_response += tabstr + f"- {sub} <br> "
+            collected_response += (
+                "" if len(subclasses) < 1 else tabstr + f"- {subclasses[-1]} <br> "
+            )
+
+            filtered_result["response"] = collected_response
+            return (filtered_result, 1)
+
+        # (2) SUPERCLASS state
+        elif (("superclass", "NN") in tagged_tokens) or (
+            ("superclasses", "VBZ") in tagged_tokens
+        ):
+            uri = tagged_tokens[uri_index][0].strip('"')
+            result = client.superclass_query(sub=uri)
+            superclasses = []
+
+            # NO RESULTS
+            if len(result) == 0:
+                filtered_result[
+                    "response"
+                ] = f"Unable to find information for superclasses of '{uri}'"
+                return (filtered_result, 1)
+
+            # extract superclasses for specified subclass
+            for entity in result:
+                for key, dic in entity.items():
+                    if key == "super":
+                        superclasses.append(dic["value"])
+
+            # create response object with all subclasses
+            collected_response = f"The superclasses for '{uri}' are:<br>"
+
+            tabstr = "&nbsp;" * 4
+            for super in superclasses[:-1]:
+                collected_response += tabstr + f"- {super} <br> "
+            collected_response += (
+                "" if len(superclasses) < 1 else tabstr + f"- {superclasses[-1]} <br> "
+            )
+
+            filtered_result["response"] = collected_response
+            return (filtered_result, 1)
+        # (3) POORLY FORMATTED QUERY
+        else:
+            return (self._send_subsuper_error(), 1)
 
 
 class AssemblyBaseStrategy(NLPStrategy):
@@ -709,7 +843,16 @@ class NaturalLanguageQueryExecutor:
              (("lighter", "RB") in query.tokens) or (("lighter", "JJR") in query.tokens):
             query.set_strategy(FilterMassStrategy())
             self._strategy_state = Strategy.FILTER_ASSEMBLY
-        # 5) WHAT
+        # 5) SUBSUPER
+        elif (
+            (("subclass", "NN") in query.tokens)
+            or (("subclasses", "VBZ") in query.tokens)
+            or (("superclass", "NN") in query.tokens)
+            or (("superclasses", "VBZ") in query.tokens)
+        ):
+            query.set_strategy(SubSuperStrategy())
+            self._strategy_state = Strategy.SUBSUPER
+        # 6) WHAT
         elif (self._strategy_state == Strategy.WHAT) or (
             query.tokens[0][0] == "What" and len(query.tokens) >= 3
         ):

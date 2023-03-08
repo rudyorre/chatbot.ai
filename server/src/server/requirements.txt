@@ -5,3 +5,4 @@ numpy
 nltk
 pytest
 pytest-dependency
+requests
