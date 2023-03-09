@@ -426,7 +426,8 @@ class DomainRangeStrategy(NLPStrategy):
                     filtered_result["response"] += (
                         tabstr + f"- {uri[src_start:src_end]} <br>"
                     )
-                    self._disambiguation_options[uri[src_start:src_end]] = f"<{uri}>"
+                    self._disambiguation_options[uri[src_start:src_end]
+                                                 ] = f"<{uri}>"
 
                 # check to see if uris are the same
                 same_uris = False
@@ -468,7 +469,8 @@ class DomainRangeStrategy(NLPStrategy):
 
                 # (ii) Cache multiple result options for future disambiguation
                 else:
-                    filtered_result["response"] += tabstr + f"- all of the above"
+                    filtered_result["response"] += tabstr + \
+                        f"- all of the above"
                     self._disambiguation_prop_label["prop"] = prop
                     return (filtered_result, 0)
 
@@ -517,6 +519,7 @@ class FilterDecorator:
             return f"FILTER ({arg} > {self.lower})"
         elif self.upper != -1:
             return f"FILTER ({arg} < {self.upper})"
+
 
 class SubSuperStrategy(NLPStrategy):
     def _send_subsuper_error(self):
@@ -601,7 +604,8 @@ class SubSuperStrategy(NLPStrategy):
             for sub in subclasses[:-1]:
                 collected_response += tabstr + f"- {sub} <br> "
             collected_response += (
-                "" if len(subclasses) < 1 else tabstr + f"- {subclasses[-1]} <br> "
+                "" if len(subclasses) < 1 else tabstr +
+                f"- {subclasses[-1]} <br> "
             )
 
             filtered_result["response"] = collected_response
@@ -635,7 +639,8 @@ class SubSuperStrategy(NLPStrategy):
             for super in superclasses[:-1]:
                 collected_response += tabstr + f"- {super} <br> "
             collected_response += (
-                "" if len(superclasses) < 1 else tabstr + f"- {superclasses[-1]} <br> "
+                "" if len(superclasses) < 1 else tabstr +
+                f"- {superclasses[-1]} <br> "
             )
 
             filtered_result["response"] = collected_response
@@ -708,7 +713,7 @@ class MassFunctionStrategy(AssemblyBaseStrategy):
         """
 
         filtered_result = {}
-        result_dict = defaultdict(set)
+        result_dict = defaultdict(list)
 
         if ("id", "NN") not in tagged_tokens:
             filtered_result[
@@ -732,15 +737,18 @@ class MassFunctionStrategy(AssemblyBaseStrategy):
             for k, v in result.items():
                 if ("mass", "NN") in tagged_tokens and k == "mass":
                     if "mass" not in result_dict:
-                        result_dict["mass"].add(v["value"])
+                        result_dict["mass"].append(v["value"])
                         filtered_result[
                             "response"
                         ] += f"The mass is {float(v['value'])} kg. <br>\n "
                 if ("function", "NN") in tagged_tokens and k == "function":
-                    result_dict["function"].add(v["value"])
+                    if v['value'] in result_dict['function']:
+                        continue
+                    result_dict["function"].append(v["value"])
 
-        filtered_result["response"] += self._returnProcessedList(
-            "function", result_dict["function"])
+        if "function" in result_dict:
+            filtered_result["response"] += self._returnProcessedList(
+                "function", result_dict["function"])
         return (filtered_result, 1)
 
 
@@ -790,12 +798,14 @@ class FilterMassStrategy(AssemblyBaseStrategy):
             ] = f"Unable to find information for subjects within this range"
             return (filtered_result, 1)
 
-        assembly_list = set()
+        assembly_list = []
         for result in results:
             for k, v in result.items():
                 if k != "assembly":
                     continue
-                assembly_list.add(v["value"])
+                if v['value'] in assembly_list:
+                    continue
+                assembly_list.append(v["value"])
 
         filtered_result["response"] = self._returnProcessedList(
             "subject", assembly_list)
