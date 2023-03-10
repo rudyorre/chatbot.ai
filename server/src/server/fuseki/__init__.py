@@ -41,6 +41,56 @@ class FusekiClient:
             print(e)
         return result
 
+    def assembly_query(
+        self,
+        assembly="?assembly",
+        id="?id",
+        mass="?mass",
+        function="?function",
+    ):
+        """
+        Creates a sparql query using the provided assembly object, id, mass and function variables. By default,
+        these variables will be unknown.
+
+        Args:
+            assembly: an object of fse:Assembly
+            id: id of assembly
+            mass: mass of assembly
+            function: function of assembly
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX fse:			<http://opencaesar.io/examples/firesat/disciplines/fse/fse#>
+            PREFIX base:		<http://imce.jpl.nasa.gov/foundation/base#>
+            PREFIX analysis: 	<http://imce.jpl.nasa.gov/foundation/analysis#>
+            PREFIX vim4: 		<http://bipm.org/jcgm/vim4#>
+            PREFIX mission: 	<http://imce.jpl.nasa.gov/foundation/mission#>
+            
+            SELECT DISTINCT ?assembly ?id ?mass ?function
+            WHERE {{
+                {assembly} a fse:Assembly ;									# match an assembly
+                        base:hasIdentifier "{id}" ;							# match its id
+                        analysis:isCharacterizedBy [						# match its mass
+                            vim4:hasDoubleNumber {mass}
+                        ] ;
+                        mission:performs {function} .						# match a function it performs
+            }}
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
+
     def domain_range_query(
         self,
         domain="?domain",
@@ -55,6 +105,7 @@ class FusekiClient:
         Args:
             domain: domain field of property
             property: specified property
+            property_label: specified property label
             range: range field of property
 
         Returns:
@@ -78,6 +129,166 @@ class FusekiClient:
             }}
 
             ORDER BY ?domain
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
+
+    def domain_property_query(
+        self,
+        domain_label="?domain_label",
+    ):
+        """
+            Creates a sparql query using the provided domain variable.
+
+        Args:
+            domain_label: domain label field of property
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT DISTINCT ?domain ?property ?property_label
+            WHERE {{
+                ?domain a owl:Class .
+                ?domain rdfs:label "{domain_label}" .
+
+                ?property rdfs:domain ?domain .
+                ?property rdfs:label ?property_label .
+            }}
+
+            ORDER BY ?domain
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
+
+    def range_property_query(
+        self,
+        range_label="?range_label",
+    ):
+        """
+        Creates a sparql query using the provided range variable.
+
+        Args:
+            range_label: range label field of property
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            SELECT DISTINCT ?range ?property ?property_label
+            WHERE {{
+                ?range a owl:Class .
+                ?range rdfs:label "{range_label}" .
+
+                ?property rdfs:range ?range .
+                ?property rdfs:label ?property_label .
+            }}
+
+            ORDER BY ?range
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
+
+    def subclass_query(
+        self,
+        super="?super",
+    ):
+        """
+        Creates a sparql query using the provided subclass variable.
+
+        Args:
+            super: superclass field uri
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+            SELECT DISTINCT ?sub ?super
+
+            WHERE {{
+                ?sub rdfs:subClassOf <{super}> .
+                FILTER ( ?sub != <{super}> )
+                FILTER ( isIRI(<{super}>) )
+            }}
+
+            ORDER BY ?sub
+            """
+        )
+
+        result = []
+        try:
+            ret = self._sparql.queryAndConvert()
+            for r in ret["results"]["bindings"]:
+                result.append(r)
+        except Exception as e:
+            print(e)
+        return result
+
+    def superclass_query(
+        self,
+        sub="?sub",
+    ):
+        """
+        Creates a sparql query using the provided superclass variable.
+
+        Args:
+            sub: subclass field uri
+
+        Returns:
+            A list of dictionaries containing representing the JSON that the SPARQL query returns.
+        """
+
+        self._sparql.setQuery(
+            f"""
+            PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+            SELECT DISTINCT ?sub ?super
+
+            WHERE {{
+                <{sub}> rdfs:subClassOf ?super .
+                FILTER ( <{sub}> != ?super)
+                FILTER ( isIRI(?super) )
+            }}
+
+            ORDER BY ?super
             """
         )
 
