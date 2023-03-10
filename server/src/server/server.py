@@ -55,19 +55,25 @@ processed_queries = []
 @app.route("/query", methods=["POST"])
 @cross_origin()
 def user_query():
-	user_query = request.get_json()["data"]
-	user_queries.append(user_query)
+	# querystr = request.get_json()["data"]
+	# user_query = Query(querystr)
+	# user_queries.append(user_query)
 
-	# see if query matches any hardcoded responses
-	transformed_query = parse_user_query(user_query)
-	resp = get_hardcode_response(transformed_query)
-	resp = {"response": resp}
-	if resp == '':
-		processed_query = nlqe.query(user_query)
-		processed_queries.append(processed_query)
-	else:
-		processed_queries.append(resp)
-	return '', 204
+	# transformed_query = parse_user_query(querystr)
+	# resp = get_hardcode_response(transformed_query)
+	# resp = {"response": resp}
+	# if resp["response"] == "":
+	# 	print("empty hardcode response")
+	# 	processed_query = nlqe.query(user_query)
+	# 	processed_queries.append(processed_query)
+	# else:
+	# 	processed_queries.append(resp)
+	# return "", 204
+	user_query = Query(request.get_json()["data"])
+	user_queries.append(user_query)
+	processed_query = nlqe.query(user_query)
+	processed_queries.append(processed_query)
+	return "", 204
 
 
 @app.route("/response")
