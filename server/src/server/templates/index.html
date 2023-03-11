@@ -42,7 +42,7 @@
 
 					<!-- input -->
 					<div class="bottom_wrapper">
-						<input id="msg_input" placeholder="Say Hi to begin chat..." />
+						<textarea id="msg_input" placeholder="Say Hi to begin chat..."></textarea>
 						<div id="send_button" class="app_button_1">Send</div>
 					</div>
 
@@ -71,6 +71,45 @@
 							<div id="collapse1" class="panel-collapse collapse in">
 								<div class="panel-body">
 									Feel free to ask about our FireSat Mission Design :D
+									<br>
+									<br>
+									Some example queries:
+									<ul>
+										<li>"Tell me about yourself!"</li>
+										<li>"What dataset do you interact with?"</li>
+										<li>"What is the mission description?"</li>
+										<li>Query for the domain and range of a property:
+											<ul>
+												<li>"What is the domain and/or range of property_name"?</li>
+												<li>Ex: What is the domain of "system has base unitary quantity"?</li>
+											</ul>
+										</li>
+										<li>Query for the properties of a domain/range</li>
+											<ul>
+												<li>"What are the properties of domain/range name?"</li>
+												<li>Ex: What are the properties of range "general unitary quantity"?</li>
+											</ul>
+										<li>Query for subclass/superclasses</li>
+											<ul>
+												<li>What are the subclasses/superclasses of class_name?</li>
+												<li>Ex: What are the superclasses of "http://bipm.org/jcgm/vim4#InherentOrdinalQuantity"?</li>
+											</ul>
+										<li>Query for mass/function of an assembly object</li>
+											<ul>
+												<li>What is the mass and/or function of assembly object obj_id?</li>
+												<li>Ex: What is the mass and function of assembly object id 500000?</li>
+											</ul>
+										<li>Filter assembly objects</li>			
+											<ul>
+												<li>Which subjects are heavier than x and or lighter than y?</li>
+												<li>Ex: Which subjects are heavier than 10 kg?</li>
+											</ul>
+										<li>"What" queires</li>
+											<ul>
+												<li>What JPL_subject ... predicate?</li>
+												<li>Ex: What is the mission description?</li>
+											</ul>
+									</ul>
 								</div>
 							</div>
 						</div>
