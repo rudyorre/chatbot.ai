@@ -47,6 +47,7 @@ class FusekiClient:
         id="?id",
         mass="?mass",
         function="?function",
+        decorator=None,
     ):
         """
         Creates a sparql query using the provided assembly object, id, mass and function variables. By default,
@@ -72,12 +73,13 @@ class FusekiClient:
             
             SELECT DISTINCT ?assembly ?id ?mass ?function
             WHERE {{
-                {assembly} a fse:Assembly ;									# match an assembly
-                        base:hasIdentifier "{id}" ;							# match its id
-                        analysis:isCharacterizedBy [						# match its mass
+                {assembly} a fse:Assembly ;									            # match an assembly
+                        base:hasIdentifier {f"'{id}'" if decorator is None else id} ;	# match its id
+                        analysis:isCharacterizedBy [						            # match its mass
                             vim4:hasDoubleNumber {mass}
                         ] ;
-                        mission:performs {function} .						# match a function it performs
+                        mission:performs {function} .						            # match a function it performs
+                {decorator(mass) if decorator is not None else ""}
             }}
             """
         )
