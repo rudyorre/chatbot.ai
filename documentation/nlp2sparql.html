@@ -1,0 +1,448 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: package nlp2sparql</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>nlp2sparql</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/server/nlp2sparql/__init__.py">/server/nlp2sparql/__init__.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Package Contents</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="nlp2sparql.html#FilterDecorator">FilterDecorator</a>
+</font></dt><dt><font face="helvetica, arial"><a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="nlp2sparql.html#AssemblyBaseStrategy">AssemblyBaseStrategy</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="nlp2sparql.html#FilterMassStrategy">FilterMassStrategy</a>
+</font></dt><dt><font face="helvetica, arial"><a href="nlp2sparql.html#MassFunctionStrategy">MassFunctionStrategy</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="nlp2sparql.html#DomainRangePropertyStrategy">DomainRangePropertyStrategy</a>
+</font></dt><dt><font face="helvetica, arial"><a href="nlp2sparql.html#DomainRangeStrategy">DomainRangeStrategy</a>
+</font></dt><dt><font face="helvetica, arial"><a href="nlp2sparql.html#SubSuperStrategy">SubSuperStrategy</a>
+</font></dt><dt><font face="helvetica, arial"><a href="nlp2sparql.html#WhatStrategy">WhatStrategy</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="nlp2sparql.html#NaturalLanguageQueryExecutor">NaturalLanguageQueryExecutor</a>
+</font></dt><dt><font face="helvetica, arial"><a href="nlp2sparql.html#Query">Query</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="enum.html#Enum">enum.Enum</a>(<a href="builtins.html#object">builtins.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="nlp2sparql.html#Strategy">Strategy</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="AssemblyBaseStrategy">class <strong>AssemblyBaseStrategy</strong></a>(<a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="nlp2sparql.html#AssemblyBaseStrategy">AssemblyBaseStrategy</a></dd>
+<dd><a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="AssemblyBaseStrategy-execute"><strong>execute</strong></a>(self, tokens, cache, client)</dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="DomainRangePropertyStrategy">class <strong>DomainRangePropertyStrategy</strong></a>(<a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="nlp2sparql.html#DomainRangePropertyStrategy">DomainRangePropertyStrategy</a></dd>
+<dd><a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="DomainRangePropertyStrategy-execute"><strong>execute</strong></a>(self, tagged_tokens, cache, client)</dt><dd><tt>Processes&nbsp;user&nbsp;queries&nbsp;that&nbsp;ask&nbsp;about&nbsp;the&nbsp;properties&nbsp;of&nbsp;a&nbsp;particular&nbsp;"domain&nbsp;/&nbsp;range".&nbsp;In&nbsp;the&nbsp;context&nbsp;of&nbsp;RDF&nbsp;triples,<br>
+the&nbsp;user&nbsp;should&nbsp;prompt&nbsp;a&nbsp;domain/range&nbsp;label,&nbsp;which&nbsp;will&nbsp;return&nbsp;all&nbsp;property_labels&nbsp;that&nbsp;match&nbsp;the&nbsp;criteria&nbsp;and&nbsp;return&nbsp;their<br>
+associated&nbsp;property&nbsp;entries&nbsp;as&nbsp;labels&nbsp;or&nbsp;uris.&nbsp;Multi-word&nbsp;property&nbsp;labels&nbsp;must&nbsp;be&nbsp;wrapped&nbsp;in&nbsp;quotes.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tagged_tokens:&nbsp;A&nbsp;list&nbsp;of&nbsp;tokens<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filtered_result:&nbsp;A&nbsp;dict&nbsp;containing&nbsp;a&nbsp;response&nbsp;english&nbsp;string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;status:&nbsp;A&nbsp;boolean&nbsp;for&nbsp;whether&nbsp;query&nbsp;requires&nbsp;disambiguation</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="DomainRangeStrategy">class <strong>DomainRangeStrategy</strong></a>(<a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="nlp2sparql.html#DomainRangeStrategy">DomainRangeStrategy</a></dd>
+<dd><a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="DomainRangeStrategy-execute"><strong>execute</strong></a>(self, tagged_tokens, cache, client)</dt><dd><tt>Processes&nbsp;user&nbsp;queries&nbsp;that&nbsp;ask&nbsp;a&nbsp;basic&nbsp;"domain&nbsp;/&nbsp;range"&nbsp;question.&nbsp;In&nbsp;the&nbsp;context&nbsp;of&nbsp;RDF&nbsp;triples,&nbsp;the&nbsp;user<br>
+should&nbsp;prompt&nbsp;a&nbsp;property_label,&nbsp;which&nbsp;will&nbsp;match&nbsp;all&nbsp;property_labels&nbsp;that&nbsp;match&nbsp;the&nbsp;criteria&nbsp;and&nbsp;return&nbsp;their<br>
+associated&nbsp;domain&nbsp;and&nbsp;range&nbsp;entries&nbsp;as&nbsp;labels&nbsp;or&nbsp;uris.&nbsp;Disambiguation&nbsp;occurs&nbsp;for&nbsp;multiple&nbsp;matchine&nbsp;property<br>
+labels.&nbsp;Multi-word&nbsp;property&nbsp;labels&nbsp;must&nbsp;be&nbsp;wrapped&nbsp;in&nbsp;quotes.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tagged_tokens:&nbsp;A&nbsp;list&nbsp;of&nbsp;tokens<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filtered_result:&nbsp;A&nbsp;dict&nbsp;containing&nbsp;a&nbsp;response&nbsp;english&nbsp;string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;status:&nbsp;A&nbsp;boolean&nbsp;for&nbsp;whether&nbsp;query&nbsp;requires&nbsp;disambiguation</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="FilterDecorator">class <strong>FilterDecorator</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#FilterDecorator">FilterDecorator</a>(upper=-1,&nbsp;lower=-1)<br>
+&nbsp;<br>
+<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="FilterDecorator-__call__"><strong>__call__</strong></a>(self, arg)</dt><dd><tt>Call&nbsp;self&nbsp;as&nbsp;a&nbsp;function.</tt></dd></dl>
+
+<dl><dt><a name="FilterDecorator-__init__"><strong>__init__</strong></a>(self, upper=-1, lower=-1)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="FilterMassStrategy">class <strong>FilterMassStrategy</strong></a>(<a href="nlp2sparql.html#AssemblyBaseStrategy">AssemblyBaseStrategy</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="nlp2sparql.html#FilterMassStrategy">FilterMassStrategy</a></dd>
+<dd><a href="nlp2sparql.html#AssemblyBaseStrategy">AssemblyBaseStrategy</a></dd>
+<dd><a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="FilterMassStrategy-execute"><strong>execute</strong></a>(self, tagged_tokens, cache, client)</dt><dd><tt>Assembly&nbsp;query&nbsp;handles&nbsp;the&nbsp;quesition&nbsp;related&nbsp;to&nbsp;the&nbsp;mass&nbsp;range&nbsp;of&nbsp;a&nbsp;particular&nbsp;assembly&nbsp;<a href="builtins.html#object">object</a>.<br>
+Users&nbsp;should&nbsp;provide&nbsp;an&nbsp;range&nbsp;with&nbsp;keywords&nbsp;like&nbsp;"heavier"/"lighter"&nbsp;specified,&nbsp;associated&nbsp;assembly<br>
+objects&nbsp;will&nbsp;be&nbsp;returned&nbsp;depending&nbsp;on&nbsp;the&nbsp;question&nbsp;asked.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tagged_tokens:&nbsp;A&nbsp;list&nbsp;of&nbsp;tokens<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filtered_result:&nbsp;A&nbsp;dict&nbsp;containing&nbsp;a&nbsp;response&nbsp;english&nbsp;string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;status:&nbsp;A&nbsp;boolean&nbsp;for&nbsp;whether&nbsp;query&nbsp;requires&nbsp;disambiguation</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="MassFunctionStrategy">class <strong>MassFunctionStrategy</strong></a>(<a href="nlp2sparql.html#AssemblyBaseStrategy">AssemblyBaseStrategy</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="nlp2sparql.html#MassFunctionStrategy">MassFunctionStrategy</a></dd>
+<dd><a href="nlp2sparql.html#AssemblyBaseStrategy">AssemblyBaseStrategy</a></dd>
+<dd><a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="MassFunctionStrategy-execute"><strong>execute</strong></a>(self, tagged_tokens, cache, client)</dt><dd><tt>Assembly&nbsp;query&nbsp;handles&nbsp;the&nbsp;quesition&nbsp;related&nbsp;to&nbsp;the&nbsp;"mass&nbsp;/&nbsp;function"&nbsp;of&nbsp;a&nbsp;particular&nbsp;assembly&nbsp;<a href="builtins.html#object">object</a>.<br>
+Users&nbsp;should&nbsp;provide&nbsp;an&nbsp;assembly&nbsp;<a href="builtins.html#object">object</a>&nbsp;with&nbsp;"id"&nbsp;specified,&nbsp;associated&nbsp;mass&nbsp;(int)&nbsp;or&nbsp;function&nbsp;(list)<br>
+will&nbsp;be&nbsp;returned&nbsp;depending&nbsp;on&nbsp;the&nbsp;question&nbsp;asked.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tagged_tokens:&nbsp;A&nbsp;list&nbsp;of&nbsp;tokens<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filtered_result:&nbsp;A&nbsp;dict&nbsp;containing&nbsp;a&nbsp;response&nbsp;english&nbsp;string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;status:&nbsp;A&nbsp;boolean&nbsp;for&nbsp;whether&nbsp;query&nbsp;requires&nbsp;disambiguation</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="NLPStrategy">class <strong>NLPStrategy</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="NLPStrategy-execute"><strong>execute</strong></a>(self, tokens, cache, client)</dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="NaturalLanguageQueryExecutor">class <strong>NaturalLanguageQueryExecutor</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#NaturalLanguageQueryExecutor">NaturalLanguageQueryExecutor</a>(client)<br>
+&nbsp;<br>
+<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="NaturalLanguageQueryExecutor-__init__"><strong>__init__</strong></a>(self, client)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="NaturalLanguageQueryExecutor-process_query"><strong>process_query</strong></a>(self, query: nlp2sparql.Query)</dt></dl>
+
+<dl><dt><a name="NaturalLanguageQueryExecutor-query"><strong>query</strong></a>(self, query: nlp2sparql.Query)</dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Query">class <strong>Query</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Query">Query</a>(user_input)<br>
+&nbsp;<br>
+<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Query-__init__"><strong>__init__</strong></a>(self, user_input)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="Query-execute"><strong>execute</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Query-set_cache"><strong>set_cache</strong></a>(self, cache)</dt></dl>
+
+<dl><dt><a name="Query-set_client"><strong>set_client</strong></a>(self, client)</dt></dl>
+
+<dl><dt><a name="Query-set_strategy"><strong>set_strategy</strong></a>(self, strategy)</dt></dl>
+
+<dl><dt><a name="Query-set_tokens"><strong>set_tokens</strong></a>(self, tokens)</dt></dl>
+
+<dl><dt><a name="Query-set_type"><strong>set_type</strong></a>(self, query_type)</dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Strategy">class <strong>Strategy</strong></a>(<a href="enum.html#Enum">enum.Enum</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Strategy">Strategy</a>(value,&nbsp;names=None,&nbsp;*,&nbsp;module=None,&nbsp;qualname=None,&nbsp;type=None,&nbsp;start=1)<br>
+&nbsp;<br>
+An&nbsp;enumeration.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="nlp2sparql.html#Strategy">Strategy</a></dd>
+<dd><a href="enum.html#Enum">enum.Enum</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>ASSEMBLY</strong> = &lt;Strategy.ASSEMBLY: 4&gt;</dl>
+
+<dl><dt><strong>DOMAIN_RANGE</strong> = &lt;Strategy.DOMAIN_RANGE: 2&gt;</dl>
+
+<dl><dt><strong>DOMAIN_RANGE_PROPERTY</strong> = &lt;Strategy.DOMAIN_RANGE_PROPERTY: 3&gt;</dl>
+
+<dl><dt><strong>FILTER_ASSEMBLY</strong> = &lt;Strategy.FILTER_ASSEMBLY: 5&gt;</dl>
+
+<dl><dt><strong>NONE</strong> = &lt;Strategy.NONE: 0&gt;</dl>
+
+<dl><dt><strong>SUBSUPER</strong> = &lt;Strategy.SUBSUPER: 6&gt;</dl>
+
+<dl><dt><strong>WHAT</strong> = &lt;Strategy.WHAT: 1&gt;</dl>
+
+<hr>
+Data descriptors inherited from <a href="enum.html#Enum">enum.Enum</a>:<br>
+<dl><dt><strong>name</strong></dt>
+<dd><tt>The&nbsp;name&nbsp;of&nbsp;the&nbsp;Enum&nbsp;member.</tt></dd>
+</dl>
+<dl><dt><strong>value</strong></dt>
+<dd><tt>The&nbsp;value&nbsp;of&nbsp;the&nbsp;Enum&nbsp;member.</tt></dd>
+</dl>
+<hr>
+Readonly properties inherited from <a href="enum.html#EnumMeta">enum.EnumMeta</a>:<br>
+<dl><dt><strong>__members__</strong></dt>
+<dd><tt>Returns&nbsp;a&nbsp;mapping&nbsp;of&nbsp;member&nbsp;name-&gt;value.<br>
+&nbsp;<br>
+This&nbsp;mapping&nbsp;lists&nbsp;all&nbsp;enum&nbsp;members,&nbsp;including&nbsp;aliases.&nbsp;Note&nbsp;that&nbsp;this<br>
+is&nbsp;a&nbsp;read-only&nbsp;view&nbsp;of&nbsp;the&nbsp;internal&nbsp;mapping.</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="SubSuperStrategy">class <strong>SubSuperStrategy</strong></a>(<a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="nlp2sparql.html#SubSuperStrategy">SubSuperStrategy</a></dd>
+<dd><a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="SubSuperStrategy-execute"><strong>execute</strong></a>(self, tagged_tokens, cache, client)</dt><dd><tt>Processes&nbsp;user&nbsp;queries&nbsp;that&nbsp;ask&nbsp;a&nbsp;basic&nbsp;"sub&nbsp;/&nbsp;super-class"&nbsp;question.&nbsp;In&nbsp;the&nbsp;context&nbsp;of&nbsp;RDF&nbsp;triples,&nbsp;the&nbsp;user<br>
+should&nbsp;prompt&nbsp;a&nbsp;property_label,&nbsp;which&nbsp;will&nbsp;match&nbsp;all&nbsp;property_labels&nbsp;that&nbsp;match&nbsp;the&nbsp;criteria&nbsp;and&nbsp;return&nbsp;their<br>
+associated&nbsp;domain&nbsp;and&nbsp;range&nbsp;entries&nbsp;as&nbsp;labels&nbsp;or&nbsp;uris.&nbsp;Disambiguation&nbsp;occurs&nbsp;for&nbsp;multiple&nbsp;matchine&nbsp;property<br>
+labels.&nbsp;Multi-word&nbsp;property&nbsp;labels&nbsp;must&nbsp;be&nbsp;wrapped&nbsp;in&nbsp;quotes.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tagged_tokens:&nbsp;A&nbsp;list&nbsp;of&nbsp;tokens<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filtered_result:&nbsp;A&nbsp;dict&nbsp;containing&nbsp;a&nbsp;response&nbsp;english&nbsp;string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;status:&nbsp;A&nbsp;boolean&nbsp;for&nbsp;whether&nbsp;query&nbsp;requires&nbsp;disambiguation</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="WhatStrategy">class <strong>WhatStrategy</strong></a>(<a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="nlp2sparql.html#WhatStrategy">WhatStrategy</a></dd>
+<dd><a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="WhatStrategy-execute"><strong>execute</strong></a>(self, tagged_tokens, cache, client)</dt><dd><tt>Processes&nbsp;user&nbsp;queries&nbsp;that&nbsp;ask&nbsp;a&nbsp;basic&nbsp;"what"&nbsp;question.&nbsp;In&nbsp;the&nbsp;context&nbsp;of&nbsp;RDF&nbsp;triples,&nbsp;the&nbsp;user<br>
+should&nbsp;prompt&nbsp;a&nbsp;subject&nbsp;and&nbsp;predicate,&nbsp;which&nbsp;will&nbsp;match&nbsp;all&nbsp;objects&nbsp;that&nbsp;match&nbsp;the&nbsp;criteria.&nbsp;The<br>
+implementation&nbsp;will&nbsp;involve&nbsp;making&nbsp;a&nbsp;more&nbsp;general&nbsp;query&nbsp;initially&nbsp;where&nbsp;only&nbsp;the&nbsp;subject&nbsp;is&nbsp;included,<br>
+which&nbsp;will&nbsp;allow&nbsp;us&nbsp;to&nbsp;search&nbsp;through&nbsp;all&nbsp;of&nbsp;the&nbsp;predicate&nbsp;URIs,&nbsp;which&nbsp;this&nbsp;function&nbsp;will&nbsp;attempt&nbsp;to&nbsp;match<br>
+with&nbsp;the&nbsp;user's&nbsp;provided&nbsp;predicate.&nbsp;Every&nbsp;RDF&nbsp;triple&nbsp;that&nbsp;matches&nbsp;this&nbsp;predicate&nbsp;will&nbsp;be&nbsp;returned&nbsp;from<br>
+this&nbsp;query.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tagged_tokens:&nbsp;A&nbsp;list&nbsp;of&nbsp;tokens<br>
+&nbsp;&nbsp;&nbsp;&nbsp;status:&nbsp;A&nbsp;boolean&nbsp;for&nbsp;whether&nbsp;query&nbsp;requires&nbsp;disambiguation<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filtered_result:&nbsp;A&nbsp;dict&nbsp;containing&nbsp;a&nbsp;response&nbsp;english&nbsp;string</tt></dd></dl>
+
+<dl><dt><a name="WhatStrategy-isURI"><strong>isURI</strong></a>(self, uri: str)</dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="nlp2sparql.html#NLPStrategy">NLPStrategy</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>stopwords</strong> = &lt;WordListCorpusReader in '.../corpora/stopwords' (not loaded yet)&gt;</td></tr></table>
+</body></html>
