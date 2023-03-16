@@ -5,11 +5,10 @@ Chatbot.ai is an application that interfaces with the JPL Firesat dataset in ord
 ## Setup
 
 1. Clone the repository
-2. Install Docker Desktop, Flask (pip install)
+2. Install Docker Desktop
 3. Run `git submodule init` followed by `git submodule update` to make sure you have pulled the firesat repo
-4. Run ./gradlew load to load in the FireSat dataset
-5. Run the ./start.sh script to start the backend server on port 8080 and the database server on port 3030
-6. Go to localhost:8080 to access the web application
+4. Run the ./start.sh script to start the backend server on port 8080 and the database server on port 3030
+5. Go to localhost:8080 to access the web application
 
 # Tutorial
 

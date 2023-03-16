@@ -2,4 +2,4 @@
 
 ( cd firesat && ./gradlew startFuseki && ./gradlew load)
 
-docker-compose up
+docker-compose up --build
