@@ -1,16 +1,14 @@
 from unittest import TestCase
-import os
-import requests
+from server.routes import app
 
 
 def check_query(query, output):
-    ENDPOINT = "http://localhost:8080"
     HEADERS = {"Content-Type": "application/json"}
     # Make POST request
-    requests.post(url=f"{ENDPOINT}/query", headers=HEADERS, json={"data": query})
+    app.test_client().post("testQuery", headers=HEADERS, json={"data": query})
     # Make GET request
-    response = requests.get(url=f"{ENDPOINT}/response").json()["response"]
-    return response == output
+    response = app.test_client().get("testResponse")
+    assert response.json["response"].strip() == output.strip()
 
 
 class TryTestingDomainRange(TestCase):
@@ -21,7 +19,7 @@ class TryTestingDomainRange(TestCase):
             "What is the domain and range of delivers?": "For property 'delivers', the domain is 'Interchange Point' and range is 'Deliverable'.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_query_multi_word_property(self):
         tests = {
@@ -30,7 +28,7 @@ class TryTestingDomainRange(TestCase):
             'What is the domain and range of "has assignment"?': "For property 'has assignment', the domain is 'Role' and range is 'Assigned Element'.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_query_single_domain(self):
         tests = {
@@ -39,7 +37,7 @@ class TryTestingDomainRange(TestCase):
             'What is the domain of "has assignment"?': "For property 'has assignment', the domain is 'Role'.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_query_single_range(self):
         tests = {
@@ -48,7 +46,7 @@ class TryTestingDomainRange(TestCase):
             'What is the range of "has assignment"?': "For property 'has assignment', the range is 'Assigned Element'.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_query_error(self):
         tests = {
@@ -57,7 +55,7 @@ class TryTestingDomainRange(TestCase):
             'What is the domain and range of "represent"?': "Unable to find information for domain/range of 'represent'",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_query_disambiguation(self):
         tests = {
@@ -68,4 +66,4 @@ class TryTestingDomainRange(TestCase):
             "imce.jpl.nasa.gov/foundation/project": "For property 'invokes' in imce.jpl.nasa.gov/foundation/project, the domain is 'Process' and range is 'Process'.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)

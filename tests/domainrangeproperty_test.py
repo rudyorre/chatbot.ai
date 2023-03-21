@@ -1,16 +1,14 @@
 from unittest import TestCase
-import os
-import requests
+from server.routes import app
 
 
 def check_query(query, output):
-    ENDPOINT = "http://localhost:8080"
     HEADERS = {"Content-Type": "application/json"}
     # Make POST request
-    requests.post(url=f"{ENDPOINT}/query", headers=HEADERS, json={"data": query})
+    app.test_client().post("testQuery", headers=HEADERS, json={"data": query})
     # Make GET request
-    response = requests.get(url=f"{ENDPOINT}/response").json()["response"]
-    return response == output
+    response = app.test_client().get("testResponse")
+    assert response.json["response"].strip() == output.strip()
 
 
 class TryTestingDomainRangeProperty(TestCase):
@@ -21,7 +19,7 @@ class TryTestingDomainRangeProperty(TestCase):
             "What are the properties of domain Explanation?": "For domain 'Explanation', the properties are: analyzes, explains, validates.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_property_domain_query_multi_word_property(self):
         tests = {
@@ -30,7 +28,7 @@ class TryTestingDomainRangeProperty(TestCase):
             'What are the properties of domain "Requirement"?': "For domain 'Requirement', the properties are: applies during, forbids, requires, has rationale, refines, specifies.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_property_range_query_foundation(self):
         tests = {
@@ -39,7 +37,7 @@ class TryTestingDomainRangeProperty(TestCase):
             "What are the properties of range Component?": "For range 'Component', the properties are: deploys, influences.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_property_range_query_multi_word_property(self):
         tests = {
@@ -48,7 +46,7 @@ class TryTestingDomainRangeProperty(TestCase):
             "What is the property of range Junction?": "For range 'Junction', the properties are: traverses.",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)
 
     def test_domain_range_query_error(self):
         tests = {
@@ -57,4 +55,4 @@ class TryTestingDomainRangeProperty(TestCase):
             'What are the properties of domain "Summarized Element"?': "Unable to find information about domain Summarized Element",
         }
         for query, output in tests.items():
-            assert check_query(query, output)
+            check_query(query, output)

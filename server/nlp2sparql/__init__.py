@@ -426,8 +426,7 @@ class DomainRangeStrategy(NLPStrategy):
                     filtered_result["response"] += (
                         tabstr + f"- {uri[src_start:src_end]} <br>"
                     )
-                    self._disambiguation_options[uri[src_start:src_end]
-                                                 ] = f"<{uri}>"
+                    self._disambiguation_options[uri[src_start:src_end]] = f"<{uri}>"
 
                 # check to see if uris are the same
                 same_uris = False
@@ -469,8 +468,7 @@ class DomainRangeStrategy(NLPStrategy):
 
                 # (ii) Cache multiple result options for future disambiguation
                 else:
-                    filtered_result["response"] += tabstr + \
-                        f"- all of the above"
+                    filtered_result["response"] += tabstr + f"- all of the above"
                     self._disambiguation_prop_label["prop"] = prop
                     return (filtered_result, 0)
 
@@ -604,8 +602,7 @@ class SubSuperStrategy(NLPStrategy):
             for sub in subclasses[:-1]:
                 collected_response += tabstr + f"- {sub} <br> "
             collected_response += (
-                "" if len(subclasses) < 1 else tabstr +
-                f"- {subclasses[-1]} <br> "
+                "" if len(subclasses) < 1 else tabstr + f"- {subclasses[-1]} <br> "
             )
 
             filtered_result["response"] = collected_response
@@ -639,8 +636,7 @@ class SubSuperStrategy(NLPStrategy):
             for super in superclasses[:-1]:
                 collected_response += tabstr + f"- {super} <br> "
             collected_response += (
-                "" if len(superclasses) < 1 else tabstr +
-                f"- {superclasses[-1]} <br> "
+                "" if len(superclasses) < 1 else tabstr + f"- {superclasses[-1]} <br> "
             )
 
             filtered_result["response"] = collected_response
@@ -679,9 +675,7 @@ class AssemblyBaseStrategy(NLPStrategy):
     def _returnProcessedList(self, name: str, result_list: list):
         filtered_result = ""
 
-        result_list = [
-            self._processURI(uri) for uri in result_list
-        ]
+        result_list = [self._processURI(uri) for uri in result_list]
 
         if len(result_list) == 1:
             filtered_result = f"The {name} is: <br> "
@@ -742,13 +736,14 @@ class MassFunctionStrategy(AssemblyBaseStrategy):
                             "response"
                         ] += f"The mass is {float(v['value'])} kg. <br>\n "
                 if ("function", "NN") in tagged_tokens and k == "function":
-                    if v['value'] in result_dict['function']:
+                    if v["value"] in result_dict["function"]:
                         continue
                     result_dict["function"].append(v["value"])
 
         if "function" in result_dict:
             filtered_result["response"] += self._returnProcessedList(
-                "function", result_dict["function"])
+                "function", result_dict["function"]
+            )
         return (filtered_result, 1)
 
 
@@ -784,9 +779,7 @@ class FilterMassStrategy(AssemblyBaseStrategy):
             lower = float(tagged_tokens[heavier_index + 1][0])
 
         if upper != -1 and lower != -1 and upper < lower:
-            filtered_result[
-                "response"
-            ] = "Please enter a valid mass range"
+            filtered_result["response"] = "Please enter a valid mass range"
             return (filtered_result, 1)
 
         filter_decorator = FilterDecorator(upper, lower)
@@ -803,12 +796,13 @@ class FilterMassStrategy(AssemblyBaseStrategy):
             for k, v in result.items():
                 if k != "assembly":
                     continue
-                if v['value'] in assembly_list:
+                if v["value"] in assembly_list:
                     continue
                 assembly_list.append(v["value"])
 
         filtered_result["response"] = self._returnProcessedList(
-            "subject", assembly_list)
+            "subject", assembly_list
+        )
         return (filtered_result, 1)
 
 
@@ -839,8 +833,7 @@ class NaturalLanguageQueryExecutor:
             self._strategy_state = Strategy.DOMAIN_RANGE_PROPERTY
         # 2) DOMAIN_RANGE
         elif (self._strategy_state == Strategy.DOMAIN_RANGE) or (
-            (("domain", "NN") in query.tokens) or (
-                ("range", "NN") in query.tokens)
+            (("domain", "NN") in query.tokens) or (("range", "NN") in query.tokens)
         ):
             query.set_strategy(DomainRangeStrategy())
             self._strategy_state = Strategy.DOMAIN_RANGE
@@ -849,8 +842,11 @@ class NaturalLanguageQueryExecutor:
             query.set_strategy(MassFunctionStrategy())
             self._strategy_state = Strategy.ASSEMBLY
         # 4) FILTER_ASSEMBLY
-        elif (("heavier", "JJR") in query.tokens) or \
-             (("lighter", "RB") in query.tokens) or (("lighter", "JJR") in query.tokens):
+        elif (
+            (("heavier", "JJR") in query.tokens)
+            or (("lighter", "RB") in query.tokens)
+            or (("lighter", "JJR") in query.tokens)
+        ):
             query.set_strategy(FilterMassStrategy())
             self._strategy_state = Strategy.FILTER_ASSEMBLY
         # 5) SUBSUPER

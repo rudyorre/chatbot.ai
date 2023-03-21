@@ -5,7 +5,6 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /server
 
-
 RUN apk add --no-cache \
         --virtual=.build-dependencies \
         ninja g++ gfortran file binutils \
@@ -21,7 +20,7 @@ COPY . /server
 EXPOSE 8080
 
 ENTRYPOINT ["python3"]
-CMD ["server.py"]
+CMD ["routes.py"]
 
 FROM builder as dev-envs
 
